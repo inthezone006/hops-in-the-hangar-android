@@ -14,6 +14,7 @@ coilCompose = "2.7.0"
 googleServices = "4.5.0"
 firebaseBom = "34.16.0"
 media3 = "1.5.1"
+osmdroid = "6.1.20"
 splashscreen = "1.2.0"
 datastore = "1.2.1"
 firebaseCrashlyticsPlugin = "3.0.7"
@@ -44,6 +45,7 @@ androidx-media3-common = { group = "androidx.media3", name = "media3-common", ve
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+osmdroid-android = { group = "org.osmdroid", name = "osmdroid-android", version.ref = "osmdroid" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
 
 [plugins]

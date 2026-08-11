@@ -57,10 +57,93 @@
   ],
   "info": {
     "parking": "Free parking is available at the Middletown Regional Airport. Follow signs for 'Event Parking'. Shuttles will be available from designated lots.",
-    "rules": "No outside food or beverage. Clear bags only. No smoking in the hangars. All attendees must be 21+ with a valid ID to consume alcohol.",
+    "rules": "No outside food or beverage. Clear bags only. No smoking in the hangars. Chairs are allowed, but no umbrellas/tents/canopies shall be brought in. All attendees must be 21+ with a valid ID to consume alcohol.",
     "hotels": [
-      { "name": "Drury Inn & Suites", "link": "https://www.druryhotels.com" },
-      { "name": "Hampton Inn", "link": "https://www.hilton.com/en/hotels/mwomdhx-hampton-middletown/" }
+      { "name": "Drury Inn", "link": "tel:8883241835" },
+      { "name": "Fairfield Inn", "link": "tel:5134245444" },
+      { "name": "Hampton Inn", "link": "tel:8556050317" }
     ]
-  }
+  },
+  "faq": [
+    {
+      "question": "WHERE DOES THE MONEY GENERATED FROM THIS EVENT GO?",
+      "answer": "Middletown Aviation Foundation will host Hops in the Hangar and is a fundraiser! 100% of the proceeds benefit a number of local area nonprofits. Our dedicated Hops team, composed of volunteers, will aim to support several local non-profits by raising both awareness and funds through this event."
+    },
+    {
+      "question": "WHO ORGANIZES THIS EVENT?",
+      "answer": "Middletown Aviation Foundation is the nonprofit organization. Hops in the Hangar is a unique beer event organized and run by the Board of MAF and community volunteers."
+    },
+    {
+      "question": "PROHIBITED ITEMS AT THE EVENT",
+      "answer": "-No outside food or drink\n\n• No weapons or firearms of any kind (regardless of concealed carry permit)\n\n• No umbrellas or tents as a participant\n\n• No drugs and/or drug paraphernalia\n\n• No pets\n\n• No balloons"
+    },
+    {
+      "question": "WHAT IS THE APPROPIATE ID REQUIRED FOR ENTRY?",
+      "answer": "Valid forms of ID include:\n\n• A valid state driver license with a photo\n\n• A valid ID card issued by a state with photo, name, date of birth and physical description\n\n• A valid United States military identification card"
+    },
+    {
+      "question": "ARE CHILDREN ALLOWED?",
+      "answer": "Minors are not allowed at this event, even small children. Every person inside the venue must be 21 or older, due to the nature of the event and our licensing."
+    },
+    {
+      "question": "CAN I BRING SOMEONE UNDER THE AGE OF 21 AS MY DESIGNATED DRIVER?",
+      "answer": "Our license does not permit anyone under the age of 21 to be inside the event grounds. If your designated driver is under the age of 21, they are welcome to drop you off/pick you up outside the event entry gate."
+    },
+    {
+      "question": "CAN I BRING MY PET?",
+      "answer": "This event is held at an active airport. Animals are not allowed on the event site except for ADA recognized service animals while performing their qualifying services. Please contact the event organizer for information before purchasing a ticket."
+    },
+    {
+      "question": "IS THIS EVENT HANDICAP ACCESSIBLE?",
+      "answer": "The event is on ground level and is wheelchair accessible. Unfortunately, there are not designated handicap parking spaces. You may however, unload near the front gate. We will have golf cart shuttles going around the park to pick people up. We are in an active airport using a park entrance with grass until you get inside the gate. Please contact us before you purchase a ticket."
+    },
+    {
+      "question": "WHAT DOES IT COST TO ENTER THE EVENT?",
+      "answer": "Ticket pricing can be found on our Ticket Spice ticketing page."
+    },
+    {
+      "question": "HOW CAN I FIND OUT ABOUT THE BEERS BEING SERVED?",
+      "answer": "Breweries will be listed on our website and social media page a few months out. Most, but not all, beers will be listed prior to the day of the event. When you arrive at Hops, you can locate the brewery you want on the passport you will receive at check-in."
+    },
+    {
+      "question": "WILL THERE BE FOOD AVAILABLE?",
+      "answer": "Yes. There will be several food trucks on-site offering a variety of great food and non-alcoholic beverages. These vendors usually accept both cash and credit. Our food vendors are selected so that we have a great variety of the best local fair available for our guests. We are sometimes asked if we could get more food trucks. Given the restrictions of having the event at an operating airport we pretty much max out the available space for food trucks but our vendors do a great job of preparing for the anticipated demand."
+    },
+    {
+      "question": "CAN I BRING OUTSIDE FOOD OR DRINK INTO THE VENUE?",
+      "answer": "Unfortunately, no. We have several options inside the event for food and beverage purchase. Water is also available at several hydration stations throughout the event."
+    },
+    {
+      "question": "IS SMOKING ALLOWED?",
+      "answer": "Due to the proximity of aircraft and fuel tanks, smoking is not permitted once inside the event site."
+    },
+    {
+      "question": "CAN I VOLUNTEER TO POUR BEER?",
+      "answer": "YES, we love our volunteers! Please click on the volunteer link to sign up. https://middletownaviationfoundation.ticketspice.com/hops-in-the-hangar-2026"
+    },
+    {
+      "question": "ANY GLUTEN-FREE BEERS?",
+      "answer": "Yes! We plan to have several gluten-free options both for tasting and for purchase. Please check the passport you will receive at check in for the location of gluten-free beverages. You can also check the brewery page of our website, closer to event day for available gluten-free options."
+    },
+    {
+      "question": "I PURCHASED A TICKET BUT I CAN'T FIND IT/CAN'T PRINT IT, WHAT DO I DO?",
+      "answer": "Please check your email from Middletown Aviation Foundation/Ticketspice. If you need customer service regarding your ticket purchase, please email hopsinthehangar@gmail.com for assistance."
+    },
+    {
+      "question": "IS THIS EVENT INDOORS OR OUTDOORS?",
+      "answer": "Both, it takes place in a large airplane hangar and apron. The event will take place rain or shine. All ticket sales are final. No refunds will be given."
+    },
+    {
+      "question": "ARE DESIGNATED DRIVERS ALLOWED IN THE EVENT?",
+      "answer": "Yes. We offer two designated driver tickets options. Our VIP Designated Flyer tickets are $30 and allow early admission at 4pm as well as access to our VIP Sky Lounge tent. Our General Admission Designated Flyer ticket is $25. Both the VIP and general Admission Designated Flyer tickets include admission, 2 non-alcoholic beverage tickets available at the Hops concession tent. Designated Flyer tickets do not include access to beer and we ask that you respect that. Please note that Designated Flyer tickets, if still available, increase in price starting the week before the event. All tickets are limited and may sell out prior to the event."
+    },
+    {
+      "question": "I PURCHASED A TICKET, BUT NOW I CAN'T ATTEND. NOW WHAT?",
+      "answer": "We’re bummed you won’t be able to join us! While tickets are not refundable, ticket holders may give their ticket to someone else to use - similar to a concert or other ticketed event."
+    },
+    {
+      "question": "ARE WE ALLOWED TO LEAVE AND RE-ENTER THE EVENT SITE?",
+      "answer": "No, we prefer that once you enter your in. If there is a reasonable emergency please talk to the front gate."
+    }
+  ]
 }

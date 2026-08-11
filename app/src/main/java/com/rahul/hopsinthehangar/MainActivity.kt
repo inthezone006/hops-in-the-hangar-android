@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,6 +23,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -60,6 +62,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -95,6 +98,19 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polyline
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "favorites")
 
@@ -423,8 +439,12 @@ data class EventData(
     val sponsors: List<SponsorItem>,
     val vendors: List<VendorItem>,
     val schedule: List<ScheduleItem>,
-    val info: GeneralInfo
+    val info: GeneralInfo,
+    val faq: List<FaqItemData> = emptyList()
 )
+
+@Serializable
+data class FaqItemData(val question: String, val answer: String)
 
 @Serializable
 data class SponsorLink(val label: String, val url: String)
@@ -469,6 +489,133 @@ suspend fun loadEventData(context: Context): EventData? = withContext(Dispatcher
     } catch (e: Exception) {
         Log.e("DataLoader", "Error loading event data", e)
         null
+    }
+}
+
+@Composable
+fun LinkifyText(
+    text: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = LocalTextStyle.current,
+    color: Color = Color.Unspecified,
+    textAlign: TextAlign? = null,
+    onNonLinkClick: (() -> Unit)? = null
+) {
+    val annotatedString = buildAnnotatedString {
+        append(text)
+        
+        val linkStyles = TextLinkStyles(
+            style = SpanStyle(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.Bold
+            )
+        )
+
+        // URLs
+        val urlMatcher = Patterns.WEB_URL.matcher(text)
+        while (urlMatcher.find()) {
+            val url = urlMatcher.group()
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                addLink(
+                    url = LinkAnnotation.Url(
+                        url = url,
+                        styles = linkStyles
+                    ),
+                    start = urlMatcher.start(),
+                    end = urlMatcher.end()
+                )
+            }
+        }
+        
+        // Emails
+        val emailMatcher = Patterns.EMAIL_ADDRESS.matcher(text)
+        while (emailMatcher.find()) {
+            val email = emailMatcher.group()
+            addLink(
+                url = LinkAnnotation.Url(
+                    url = "mailto:$email",
+                    styles = linkStyles
+                ),
+                start = emailMatcher.start(),
+                end = emailMatcher.end()
+            )
+        }
+    }
+
+    Text(
+        text = annotatedString,
+        modifier = if (onNonLinkClick != null) {
+            modifier.clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                onNonLinkClick()
+            }
+        } else {
+            modifier
+        },
+        style = style.copy(color = color, textAlign = textAlign ?: style.textAlign)
+    )
+}
+
+@Composable
+fun FaqSection(faqItems: List<FaqItemData>) {
+    Text(
+        "FAQ",
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.ExtraBold,
+        letterSpacing = 1.sp
+    )
+    
+    Spacer(modifier = Modifier.height(16.dp))
+    
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        faqItems.forEach { item ->
+            var expanded by remember { mutableStateOf(false) }
+            ElevatedCard(
+                onClick = { expanded = !expanded },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            item.question,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    AnimatedVisibility(visible = expanded) {
+                        Column {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            LinkifyText(
+                                text = item.answer,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                onNonLinkClick = { expanded = !expanded }
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -565,42 +712,65 @@ fun HomeScreen(eventData: EventData?) {
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text("Parking", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    Text(eventData.info.parking, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                    LinkifyText(eventData.info.parking, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     Text("Event Rules", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    Text(eventData.info.rules, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                    LinkifyText(eventData.info.rules, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            FaqSection(eventData.faq)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                "NEARBY HOTELS",
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 1.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        "Just a quick 15 minute drive there are hotels right by the I75 ramp off of 122.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    Text("Nearby Hotels", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
                     val context = LocalContext.current
                     eventData.info.hotels.forEach { hotel ->
-                        ElevatedCard(
-                            onClick = { 
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(hotel.link))
-                                context.startActivity(intent)
-                            },
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.elevatedCardColors(
-                                containerColor = Color.Transparent
-                            ),
-                            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { 
+                                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse(hotel.link))
+                                    context.startActivity(intent)
+                                }
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Default.Hotel, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text(hotel.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.weight(1f))
-                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
-                            }
+                            Icon(Icons.Default.Hotel, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(hotel.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.weight(1f))
+                            Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -1100,7 +1270,7 @@ fun DetailScreen(type: String, id: String, item: Any?) {
                     color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
+                LinkifyText(
                     text = description,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
@@ -1328,6 +1498,42 @@ fun EntertainmentScreen(schedule: List<ScheduleItem>) {
 @Composable
 fun MapScreen(eventData: EventData?, favoriteIds: Set<String>, onVendorClick: (String) -> Unit) {
     val context = LocalContext.current
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf("Event Map", "Getting to Event")
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        TabRow(
+            selectedTabIndex = selectedTabIndex,
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
+            divider = {}
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTabIndex == index,
+                    onClick = { selectedTabIndex = index },
+                    text = { Text(text = title, style = MaterialTheme.typography.labelLarge) }
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .clipToBounds() // Ensure map stays within these bounds
+        ) {
+            if (selectedTabIndex == 0) {
+                EventMapContent(eventData, favoriteIds, onVendorClick)
+            } else {
+                DirectionsMap()
+            }
+        }
+    }
+}
+
+@Composable
+fun EventMapContent(eventData: EventData?, favoriteIds: Set<String>, onVendorClick: (String) -> Unit) {
+    val context = LocalContext.current
     var regions by remember { mutableStateOf<List<MapRegion>>(emptyList()) }
     var selectedRegionId by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -1542,7 +1748,7 @@ fun MapScreen(eventData: EventData?, favoriteIds: Set<String>, onVendorClick: (S
                                 }
                                 .width(100.dp)
                                 .clickable(
-                                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                    interactionSource = remember { MutableInteractionSource() },
                                     indication = null
                                 ) {
                                     selectedRegionId = region.id
@@ -1673,6 +1879,93 @@ fun MapScreen(eventData: EventData?, favoriteIds: Set<String>, onVendorClick: (S
             }
         }
     }
+}
+
+@Composable
+fun DirectionsMap() {
+    val context = LocalContext.current
+    
+    // Initialize osmdroid configuration
+    LaunchedEffect(Unit) {
+        Configuration.getInstance().userAgentValue = context.packageName
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        // Handle permissions if needed
+    }
+
+    LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            locationPermissionLauncher.launch(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+            )
+        }
+    }
+
+    AndroidView(
+        factory = { ctx ->
+            MapView(ctx).apply {
+                layoutParams = android.view.ViewGroup.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                setTileSource(TileSourceFactory.MAPNIK)
+                setMultiTouchControls(true)
+                controller.setZoom(16.5)
+                
+                val startPoint = GeoPoint(39.5219738270208, -84.39756916125495)
+                val endPoint = GeoPoint(39.52926176496046, -84.39276198740617)
+                controller.setCenter(startPoint)
+
+                // Add Path Polyline
+                val path = Polyline().apply {
+                    outlinePaint.color = android.graphics.Color.RED
+                    outlinePaint.strokeWidth = 12f
+                    val points = listOf(
+                        GeoPoint(39.5219738270208, -84.39756916125495),
+                        GeoPoint(39.52392228883309, -84.39758570695065),
+                        GeoPoint(39.523858475447454, -84.39595871354263),
+                        GeoPoint(39.527066399999974, -84.39509747693043),
+                        GeoPoint(39.527587748793955, -84.39398167808926),
+                        GeoPoint(39.52815437416716, -84.39416932546087),
+                        GeoPoint(39.528705851297936, -84.39335856931429),
+                        GeoPoint(39.52926176496046, -84.39276198740617)
+                    )
+                    setPoints(points)
+                }
+                overlays.add(path)
+
+                // Entrance Marker
+                val entranceMarker = Marker(this).apply {
+                    position = startPoint
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    title = "500 Tytus Ave Entrance"
+                    snippet = "Start here to enter Smith Park"
+                }
+                overlays.add(entranceMarker)
+
+                // Destination Marker
+                val destinationMarker = Marker(this).apply {
+                    position = endPoint
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    title = "Start Skydiving / Event Gate"
+                    snippet = "1711 Run Way, Middletown, OH 45042"
+                }
+                overlays.add(destinationMarker)
+
+                // My Location Overlay
+                val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(ctx), this).apply {
+                    enableMyLocation()
+                }
+                overlays.add(locationOverlay)
+            }
+        },
+        modifier = Modifier
+            .fillMaxSize()
+            .clipToBounds() // Double-check clipping at the View level
+    )
 }
 
 data class MapRegion(

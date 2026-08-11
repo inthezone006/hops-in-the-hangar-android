@@ -14,8 +14,8 @@ android {
         applicationId = "com.rahul.hopsinthehangar"
         minSdk = 24
         targetSdk = 37
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,6 +53,9 @@ dependencies {
     // Data Management
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
+    
+    // Maps
+    implementation(libs.osmdroid.android)
     
     // Firebase
     implementation(platform(libs.firebase.bom))
