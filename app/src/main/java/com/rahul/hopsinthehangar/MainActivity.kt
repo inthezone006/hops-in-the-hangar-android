@@ -1749,11 +1749,7 @@ fun EventMapContent(
                                 val isSelected = region.id == selectedRegionId
                                 val isHearted = heartedMapIds.contains(region.id)
                                 
-                                // Fade out static icons as we zoom in to reveal dynamic ones
-                                // Start fading at 2.0x, fully gone by 2.8x
-                                val staticAlpha = if (region.isClickable && !isSelected && !isHearted) {
-                                    (1f - ((zoomScale - 2.0f) / 0.8f)).coerceIn(0f, 1f)
-                                } else 1f
+                                val staticAlpha = 1f
 
                                 if (staticAlpha > 0f) {
                                     if (region.image != null) {
@@ -2112,7 +2108,7 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
     val viewBox = android.graphics.RectF(0f, 0f, 2000f, 2000f)
     
     val backgroundIds = setOf("Event Map Base", "Full Event Map", "Background", "HANGAR AREA", "OUTSIDE AREA", "ENTRANCE", "Frame 1")
-    val interactiveKeywords = listOf("Beer Booth", "Sponsor Tent", "Plane", "Pilot Tent", "Food Truck", "Entrance", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "War Birds")
+    val interactiveKeywords = listOf("Beer Booth", "Sponsor Tent", "Plane", "Pilot Tent", "Food Truck", "Entrance", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "War Birds", "Balloon", "Table", "Cornhole", "Medy", "Booth", "Bathroom")
 
     val hangarColor = Color(0xFF112240)
     val runwayColor = Color(0xFF1C1C1C)
@@ -2162,13 +2158,17 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
                         if (fill.startsWith("#")) {
                             val baseColor = android.graphics.Color.parseColor(fill)
                             Color(baseColor).copy(alpha = fillOpacity)
+                        } else if (!fill.startsWith("url(#")) {
+                            // Try parsing named colors like "white", "black", etc.
+                            val baseColor = android.graphics.Color.parseColor(fill)
+                            Color(baseColor).copy(alpha = fillOpacity)
                         } else null
                     } catch (_: Exception) { null }
 
                     val color = when {
                         fill.startsWith("url(#") -> Color.Transparent
                         parsedColor != null -> parsedColor
-                        finalId.contains("Runway", ignoreCase = true) -> runwayColor
+                        finalId.contains("Runway", ignoreCase = true) || finalId.contains("Outside", ignoreCase = true) -> runwayColor
                         finalId.contains("Taxiway", ignoreCase = true) || finalId.contains("Concrete", ignoreCase = true) -> taxiwayColor
                         finalId.contains("Grass", ignoreCase = true) -> grassColor
                         finalId.contains("Hangar", ignoreCase = true) -> hangarColor

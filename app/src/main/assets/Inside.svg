@@ -1,6 +1,6 @@
 <svg width="2000" height="2000" viewBox="0 0 2000 2000" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="Inside">
-<rect width="2000" height="2000" fill="#102547"/>
+<rect width="2000" height="2000" fill="#0A192F"/>
 <g id="Rectangle 1">
 <path d="M535 619H1464V1381H535V619Z" fill="#E8E0D1"/>
 <path d="M1464 619H1469V614H1464V619ZM1464 1381V1386H1469V1381H1464ZM535 619V624H1464V619V614H535V619ZM1464 619H1459V1381H1464H1469V619H1464ZM1464 1381V1376H535V1381V1386H1464V1381Z" fill="#102547"/>
