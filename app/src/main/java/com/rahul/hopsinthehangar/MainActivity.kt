@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -111,6 +112,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import android.graphics.BitmapFactory
+import android.util.Base64
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "favorites")
 
@@ -351,6 +356,9 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                             param("vendor_id", id)
                         }
                         navController.navigate("detail/vendor/$id")
+                    },
+                    onSponsorClick = { id ->
+                        navController.navigate("detail/sponsor/$id")
                     }
                 ) 
             }
@@ -1496,10 +1504,15 @@ fun EntertainmentScreen(schedule: List<ScheduleItem>) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapScreen(eventData: EventData?, favoriteIds: Set<String>, onVendorClick: (String) -> Unit) {
+fun MapScreen(
+    eventData: EventData?, 
+    favoriteIds: Set<String>, 
+    onVendorClick: (String) -> Unit,
+    onSponsorClick: (String) -> Unit
+) {
     val context = LocalContext.current
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Event Map", "Getting to Event")
+    val tabs = listOf("OUTSIDE\nHANGAR", "INSIDE\nHANGAR", "GETTING TO\nEVENT")
 
     Column(modifier = Modifier.fillMaxSize()) {
         TabRow(
@@ -1512,7 +1525,17 @@ fun MapScreen(eventData: EventData?, favoriteIds: Set<String>, onVendorClick: (S
                 Tab(
                     selected = selectedTabIndex == index,
                     onClick = { selectedTabIndex = index },
-                    text = { Text(text = title, style = MaterialTheme.typography.labelLarge) }
+                    text = { 
+                        Text(
+                            text = title, 
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                lineHeight = 16.sp
+                            ),
+                            textAlign = TextAlign.Center,
+                            maxLines = 2
+                        ) 
+                    }
                 )
             }
         }
@@ -1522,25 +1545,54 @@ fun MapScreen(eventData: EventData?, favoriteIds: Set<String>, onVendorClick: (S
                 .weight(1f)
                 .clipToBounds() // Ensure map stays within these bounds
         ) {
-            if (selectedTabIndex == 0) {
-                EventMapContent(eventData, favoriteIds, onVendorClick)
-            } else {
-                DirectionsMap()
+            when (selectedTabIndex) {
+                0 -> EventMapContent(eventData, favoriteIds, onVendorClick, onSponsorClick, showInside = false)
+                1 -> EventMapContent(eventData, favoriteIds, onVendorClick, onSponsorClick, showInside = true)
+                2 -> DirectionsMap()
             }
         }
     }
 }
 
 @Composable
-fun EventMapContent(eventData: EventData?, favoriteIds: Set<String>, onVendorClick: (String) -> Unit) {
+fun EventMapContent(
+    eventData: EventData?, 
+    favoriteIds: Set<String>, 
+    onVendorClick: (String) -> Unit,
+    onSponsorClick: (String) -> Unit,
+    showInside: Boolean
+) {
     val context = LocalContext.current
     var regions by remember { mutableStateOf<List<MapRegion>>(emptyList()) }
     var selectedRegionId by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val filteredRegions = remember(regions, showInside) {
+        regions.filter { region ->
+            val isBeerBooth = region.id.contains("Beer Booth", ignoreCase = true)
+            if (showInside) {
+                // Inside: Show Beer Booths and non-interactive elements (backgrounds, labels)
+                isBeerBooth || !region.isClickable
+            } else {
+                // Outside: Show interactive elements except Beer Booths, and non-interactive elements
+                (!isBeerBooth && region.isClickable) || !region.isClickable
+            }
+        }
+    }
+
+    LaunchedEffect(showInside) {
+        selectedRegionId = null
+    }
+
     val selectedVendor = remember(selectedRegionId, eventData) {
-        eventData?.vendors?.find { it.mapId == selectedRegionId }
+        eventData?.vendors?.find { it.mapId == selectedRegionId || it.name == selectedRegionId }
+    }
+
+    val selectedSponsor = remember(selectedRegionId, eventData, selectedVendor) {
+        if (selectedVendor == null) {
+            eventData?.sponsors?.find { it.name == selectedRegionId }
+        } else null
     }
 
     // Transformation state
@@ -1554,13 +1606,16 @@ fun EventMapContent(eventData: EventData?, favoriteIds: Set<String>, onVendorCli
     var svgOffsetY by remember { mutableFloatStateOf(0f) }
 
     val heartedMapIds = remember(eventData, favoriteIds) {
-        eventData?.vendors?.filter { favoriteIds.contains(it.name) }?.mapNotNull { it.mapId }?.toSet() ?: emptySet()
+        eventData?.vendors?.filter { favoriteIds.contains(it.name) }
+            ?.mapNotNull { it.mapId ?: it.name }
+            ?.toSet() ?: emptySet()
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(showInside) {
         withContext(Dispatchers.IO) {
             try {
-                val inputStream = context.assets.open("map.svg")
+                val fileName = if (showInside) "Inside.svg" else "Outside.svg"
+                val inputStream = context.assets.open(fileName)
                 val (parsedRegions, viewBox) = parseSvg(inputStream)
                 
                 svgWidth = viewBox.width()
@@ -1581,8 +1636,8 @@ fun EventMapContent(eventData: EventData?, favoriteIds: Set<String>, onVendorCli
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        val title = selectedVendor?.name ?: selectedRegionId ?: "Tap Map to Select"
-        val category = selectedVendor?.category ?: (if (selectedRegionId != null) "Location Info" else "Select a location on the map")
+        val title = selectedVendor?.name ?: selectedSponsor?.name ?: selectedRegionId ?: "Tap Map to Select"
+        val category = selectedVendor?.category ?: selectedSponsor?.level ?: (if (selectedRegionId != null) "Location Info" else "Select a location on the map")
         
         Card(
             modifier = Modifier
@@ -1595,6 +1650,7 @@ fun EventMapContent(eventData: EventData?, favoriteIds: Set<String>, onVendorCli
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
             onClick = { 
                 selectedVendor?.let { onVendorClick(it.name) }
+                selectedSponsor?.let { onSponsorClick(it.name) }
             }
         ) {
             Row(
@@ -1608,6 +1664,7 @@ fun EventMapContent(eventData: EventData?, favoriteIds: Set<String>, onVendorCli
                     Text(
                         text = when {
                             selectedVendor != null -> "SELECTED VENDOR"
+                            selectedSponsor != null -> "SELECTED SPONSOR"
                             selectedRegionId != null -> "SELECTED AREA"
                             else -> "EVENT MAP"
                         },
@@ -1654,19 +1711,19 @@ fun EventMapContent(eventData: EventData?, favoriteIds: Set<String>, onVendorCli
                         modifier = Modifier
                             .fillMaxSize()
                             .clipToBounds()
-                            .pointerInput(regions, zoomScale, panOffset, svgWidth, svgHeight) {
+                            .pointerInput(filteredRegions, zoomScale, panOffset, svgWidth, svgHeight) {
                                 detectTapGestures { offset ->
                                     val svgX = (offset.x - canvasWidth/2f - panOffset.x) / sTotal + svgWidth/2f + svgOffsetX
                                     val svgY = (offset.y - canvasHeight/2f - panOffset.y) / sTotal + svgHeight/2f + svgOffsetY
                                     
-                                    val clickedRegion = regions.findLast { region ->
+                                    val clickedRegion = filteredRegions.findLast { region ->
                                         region.isClickable && hitTest(region.path, svgX, svgY)
                                     }
                                     
                                     selectedRegionId = clickedRegion?.id
                                 }
                             }
-                            .pointerInput(regions) {
+                            .pointerInput(filteredRegions) {
                                 detectTransformGestures { centroid, pan, zoom, _ ->
                                     val oldScale = zoomScale
                                     val newScale = (oldScale * zoom).coerceIn(1f, 10f)
@@ -1688,7 +1745,7 @@ fun EventMapContent(eventData: EventData?, favoriteIds: Set<String>, onVendorCli
                             canvas.translate(tx, ty)
                             canvas.scale(sTotal, sTotal)
                             
-                            regions.forEach { region ->
+                            filteredRegions.forEach { region ->
                                 val isSelected = region.id == selectedRegionId
                                 val isHearted = heartedMapIds.contains(region.id)
                                 
@@ -1699,16 +1756,29 @@ fun EventMapContent(eventData: EventData?, favoriteIds: Set<String>, onVendorCli
                                 } else 1f
 
                                 if (staticAlpha > 0f) {
-                                    drawPath(
-                                        path = region.path,
-                                        color = when {
-                                            isSelected -> primaryColor
-                                            isHearted -> favoriteColor
-                                            else -> region.color
-                                        },
-                                        alpha = staticAlpha,
-                                        style = Fill
-                                    )
+                                    if (region.image != null) {
+                                        val bounds = region.path.getBounds()
+                                        clipPath(region.path) {
+                                            drawImage(
+                                                image = region.image,
+                                                dstOffset = IntOffset(bounds.left.toInt(), bounds.top.toInt()),
+                                                dstSize = IntSize(bounds.width.toInt(), bounds.height.toInt()),
+                                                alpha = staticAlpha
+                                            )
+                                        }
+                                    } else {
+                                        drawPath(
+                                            path = region.path,
+                                            color = when {
+                                                isSelected -> primaryColor
+                                                isHearted -> favoriteColor
+                                                else -> region.color
+                                            },
+                                            alpha = staticAlpha,
+                                            style = Fill
+                                        )
+                                    }
+                                    
                                     if (isSelected || isHearted) {
                                         drawPath(
                                             path = region.path,
@@ -1724,7 +1794,7 @@ fun EventMapContent(eventData: EventData?, favoriteIds: Set<String>, onVendorCli
                     }
 
                     // Map Overlays (Icons and Labels)
-                    regions.forEach { region ->
+                    filteredRegions.forEach { region ->
                         if (!region.isClickable) return@forEach
                         val vendor = eventData?.vendors?.find { it.mapId == region.id }
                         val isHearted = heartedMapIds.contains(region.id)
@@ -1973,21 +2043,27 @@ data class MapRegion(
     val path: Path,
     val color: Color,
     val isClickable: Boolean = true,
-    val center: Offset = Offset.Zero
+    val center: Offset = Offset.Zero,
+    val image: ImageBitmap? = null
 )
 
 fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.graphics.RectF> {
-    val regionsMap = mutableMapOf<String, MutableList<Pair<Path, Color>>>()
+    val regions = mutableListOf<MapRegion>()
+    val imageMap = mutableMapOf<String, ImageBitmap>()
+    val patternMap = mutableMapOf<String, String>()
+    
     val factory = XmlPullParserFactory.newInstance()
     val parser = factory.newPullParser()
     parser.setInput(inputStream, null)
 
     var eventType = parser.eventType
     val groupIds = mutableListOf<String>()
+    var currentPatternId: String? = null
     val viewBox = android.graphics.RectF(0f, 0f, 2000f, 2000f)
     
-    val backgroundIds = setOf("Event Map Base", "Full Event Map", "Background")
-    
+    val backgroundIds = setOf("Event Map Base", "Full Event Map", "Background", "HANGAR AREA", "OUTSIDE AREA", "ENTRANCE", "Frame 1")
+    val interactiveKeywords = listOf("Beer Booth", "Sponsor Tent", "Plane", "Pilot Tent", "Food Truck", "Entrance", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "War Birds")
+
     // Muted Aviation Colors
     val hangarColor = Color(0xFF112240) // PrimaryNavy
     val runwayColor = Color(0xFF1C1C1C) // Asphalt Black
@@ -2016,6 +2092,29 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
                     }
                 } else if (tagName == "g") {
                     groupIds.add(id ?: "")
+                } else if (tagName == "image") {
+                    val href = parser.getAttributeValue("http://www.w3.org/1999/xlink", "href") 
+                             ?: parser.getAttributeValue(null, "href")
+                    if (href?.startsWith("data:image/png;base64,") == true) {
+                        val base64Data = href.substringAfter("base64,")
+                        try {
+                            val decodedString = Base64.decode(base64Data, Base64.DEFAULT)
+                            val bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+                            if (bitmap != null) {
+                                imageMap[rawId ?: ""] = bitmap.asImageBitmap()
+                            }
+                        } catch (e: Exception) {
+                            Log.e("SVG", "Error decoding image $rawId", e)
+                        }
+                    }
+                } else if (tagName == "pattern") {
+                    currentPatternId = rawId
+                } else if (tagName == "use" && currentPatternId != null) {
+                    val href = parser.getAttributeValue("http://www.w3.org/1999/xlink", "href")
+                             ?: parser.getAttributeValue(null, "href")
+                    if (href?.startsWith("#") == true) {
+                        patternMap[currentPatternId] = href.substring(1)
+                    }
                 } else {
                     val fillAttr = parser.getAttributeValue(null, "fill")
                     val styleAttr = parser.getAttributeValue(null, "style") ?: ""
@@ -2027,22 +2126,27 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
                     val fill = fillAttr ?: fillFromStyle ?: "#000000"
                     val fillOpacity = parser.getAttributeValue(null, "fill-opacity")?.toFloatOrNull() ?: 1f
                     
-                    val finalId = id ?: groupIds.lastOrNull { it.isNotEmpty() } ?: "untagged_${tagName}_${System.currentTimeMillis()}"
+                    val finalId = (id ?: groupIds.lastOrNull { it.isNotEmpty() } ?: "untagged_${tagName}_${System.currentTimeMillis()}").let {
+                        var cleaned = it.replace("_", " ")
+                        if (cleaned == "Beer Booth") cleaned = "Beer Booth 1"
+                        cleaned
+                    }
                     
+                    val parsedColor = try {
+                        if (fill.startsWith("#")) {
+                            val baseColor = android.graphics.Color.parseColor(fill)
+                            Color(baseColor).copy(alpha = fillOpacity)
+                        } else null
+                    } catch (_: Exception) { null }
+
                     val color = when {
+                        fill.startsWith("url(#") -> Color.Transparent
+                        parsedColor != null -> parsedColor
                         finalId.contains("Runway", ignoreCase = true) -> runwayColor
                         finalId.contains("Taxiway", ignoreCase = true) || finalId.contains("Concrete", ignoreCase = true) -> taxiwayColor
                         finalId.contains("Grass", ignoreCase = true) -> grassColor
                         finalId.contains("Hangar", ignoreCase = true) -> hangarColor
-                        fill == "none" -> Color.Transparent
-                        else -> {
-                            try {
-                                val baseColor = android.graphics.Color.parseColor(fill)
-                                Color(baseColor).copy(alpha = fillOpacity)
-                            } catch (_: Exception) {
-                                Color.Gray.copy(alpha = fillOpacity)
-                            }
-                        }
+                        else -> Color.Gray
                     }
 
                     val shouldSkip = (finalId.contains("Event Map Base") || finalId.contains("Background")) && tagName == "rect"
@@ -2082,8 +2186,28 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
 
                         if (pathFound) {
                             applySvgTransform(androidPath, transform)
-                            val list = regionsMap.getOrPut(finalId) { mutableListOf() }
-                            list.add(androidPath.asComposePath() to color)
+                            val fillUrl = if (fill.startsWith("url(#")) fill.substring(5, fill.length - 1) else null
+                            
+                            var regionImage: ImageBitmap? = null
+                            if (fillUrl != null) {
+                                val imageId = patternMap[fillUrl] ?: fillUrl
+                                regionImage = imageMap[imageId]
+                            }
+
+                            val isInteractive = interactiveKeywords.any { finalId.contains(it, ignoreCase = true) } && !backgroundIds.contains(finalId)
+                            
+                            val combinedPath = androidPath.asComposePath()
+                            val bounds = combinedPath.getBounds()
+                            val center = Offset(bounds.left + bounds.width / 2f, bounds.top + bounds.height / 2f)
+
+                            regions.add(MapRegion(
+                                id = finalId,
+                                path = combinedPath,
+                                color = color,
+                                isClickable = isInteractive,
+                                center = center,
+                                image = regionImage
+                            ))
                         }
                     }
                 }
@@ -2091,6 +2215,8 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
             XmlPullParser.END_TAG -> {
                 if (tagName == "g" && groupIds.isNotEmpty()) {
                     groupIds.removeAt(groupIds.size - 1)
+                } else if (tagName == "pattern") {
+                    currentPatternId = null
                 }
             }
         }
@@ -2098,18 +2224,6 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
     }
     inputStream.close()
 
-    val regions = regionsMap.map { (id, paths) ->
-        val combinedPath = Path()
-        paths.forEach { (path, _) -> combinedPath.addPath(path) }
-        val regionColor = paths.find { it.second != Color.Transparent }?.second ?: Color.Transparent
-        
-        // Calculate center for labels
-        val bounds = combinedPath.getBounds()
-        val center = Offset(bounds.left + bounds.width / 2f, bounds.top + bounds.height / 2f)
-        
-        MapRegion(id, combinedPath, regionColor, !backgroundIds.contains(id) && !id.startsWith("untagged_"), center)
-    }
-    
     return regions to viewBox
 }
 
