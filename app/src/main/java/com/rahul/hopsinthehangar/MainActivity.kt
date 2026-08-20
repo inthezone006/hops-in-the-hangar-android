@@ -2048,27 +2048,76 @@ data class MapRegion(
 )
 
 fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.graphics.RectF> {
-    val regions = mutableListOf<MapRegion>()
+    val svgBytes = inputStream.readBytes()
+    inputStream.close()
+
     val imageMap = mutableMapOf<String, ImageBitmap>()
     val patternMap = mutableMapOf<String, String>()
     
     val factory = XmlPullParserFactory.newInstance()
-    val parser = factory.newPullParser()
-    parser.setInput(inputStream, null)
+    factory.isNamespaceAware = true
+    val xlinkNamespace = "http://www.w3.org/1999/xlink"
 
+    // Pass 1: Extract Images and Patterns
+    var parser = factory.newPullParser()
+    parser.setInput(svgBytes.inputStream(), null)
     var eventType = parser.eventType
-    val groupIds = mutableListOf<String>()
     var currentPatternId: String? = null
+
+    while (eventType != XmlPullParser.END_DOCUMENT) {
+        val tagName = parser.name
+        if (eventType == XmlPullParser.START_TAG) {
+            when (tagName) {
+                "image" -> {
+                    val rawId = parser.getAttributeValue(null, "id")
+                    val href = parser.getAttributeValue(xlinkNamespace, "href") ?: parser.getAttributeValue(null, "href")
+                    if (href?.startsWith("data:image/png;base64,") == true) {
+                        val base64Data = href.substringAfter("base64,")
+                        try {
+                            val decodedString = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT)
+                            val bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+                            if (bitmap != null) {
+                                imageMap[rawId ?: ""] = bitmap.asImageBitmap()
+                            }
+                        } catch (e: Exception) {
+                            Log.e("SVG", "Error decoding image $rawId", e)
+                        }
+                    }
+                }
+                "pattern" -> {
+                    currentPatternId = parser.getAttributeValue(null, "id")
+                }
+                "use" -> {
+                    if (currentPatternId != null) {
+                        val href = parser.getAttributeValue(xlinkNamespace, "href") ?: parser.getAttributeValue(null, "href")
+                        if (href?.startsWith("#") == true) {
+                            patternMap[currentPatternId!!] = href.substring(1)
+                        }
+                    }
+                }
+            }
+        } else if (eventType == XmlPullParser.END_TAG) {
+            if (tagName == "pattern") currentPatternId = null
+        }
+        eventType = parser.next()
+    }
+
+    // Pass 2: Extract Regions
+    val regions = mutableListOf<MapRegion>()
+    parser = factory.newPullParser()
+    parser.setInput(svgBytes.inputStream(), null)
+    eventType = parser.eventType
+    
+    val groupIds = mutableListOf<String>()
     val viewBox = android.graphics.RectF(0f, 0f, 2000f, 2000f)
     
     val backgroundIds = setOf("Event Map Base", "Full Event Map", "Background", "HANGAR AREA", "OUTSIDE AREA", "ENTRANCE", "Frame 1")
     val interactiveKeywords = listOf("Beer Booth", "Sponsor Tent", "Plane", "Pilot Tent", "Food Truck", "Entrance", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "War Birds")
 
-    // Muted Aviation Colors
-    val hangarColor = Color(0xFF112240) // PrimaryNavy
-    val runwayColor = Color(0xFF1C1C1C) // Asphalt Black
-    val grassColor = Color(0xFF1A2E1F)  // Dark Forest Green
-    val taxiwayColor = Color(0xFF2D2D2D) // Concrete Gray
+    val hangarColor = Color(0xFF112240)
+    val runwayColor = Color(0xFF1C1C1C)
+    val grassColor = Color(0xFF1A2E1F)
+    val taxiwayColor = Color(0xFF2D2D2D)
 
     while (eventType != XmlPullParser.END_DOCUMENT) {
         val tagName = parser.name
@@ -2092,30 +2141,7 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
                     }
                 } else if (tagName == "g") {
                     groupIds.add(id ?: "")
-                } else if (tagName == "image") {
-                    val href = parser.getAttributeValue("http://www.w3.org/1999/xlink", "href") 
-                             ?: parser.getAttributeValue(null, "href")
-                    if (href?.startsWith("data:image/png;base64,") == true) {
-                        val base64Data = href.substringAfter("base64,")
-                        try {
-                            val decodedString = Base64.decode(base64Data, Base64.DEFAULT)
-                            val bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
-                            if (bitmap != null) {
-                                imageMap[rawId ?: ""] = bitmap.asImageBitmap()
-                            }
-                        } catch (e: Exception) {
-                            Log.e("SVG", "Error decoding image $rawId", e)
-                        }
-                    }
-                } else if (tagName == "pattern") {
-                    currentPatternId = rawId
-                } else if (tagName == "use" && currentPatternId != null) {
-                    val href = parser.getAttributeValue("http://www.w3.org/1999/xlink", "href")
-                             ?: parser.getAttributeValue(null, "href")
-                    if (href?.startsWith("#") == true) {
-                        patternMap[currentPatternId] = href.substring(1)
-                    }
-                } else {
+                } else if (tagName != "image" && tagName != "pattern" && tagName != "use" && tagName != "defs") {
                     val fillAttr = parser.getAttributeValue(null, "fill")
                     val styleAttr = parser.getAttributeValue(null, "style") ?: ""
                     
@@ -2215,17 +2241,15 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
             XmlPullParser.END_TAG -> {
                 if (tagName == "g" && groupIds.isNotEmpty()) {
                     groupIds.removeAt(groupIds.size - 1)
-                } else if (tagName == "pattern") {
-                    currentPatternId = null
                 }
             }
         }
         eventType = parser.next()
     }
-    inputStream.close()
 
     return regions to viewBox
 }
+
 
 private fun applySvgTransform(path: android.graphics.Path, transform: String?) {
     if (transform == null) return
