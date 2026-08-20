@@ -36,6 +36,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -1571,12 +1573,20 @@ fun EventMapContent(
     val filteredRegions = remember(regions, showInside) {
         regions.filter { region ->
             val isBeerBooth = region.id.contains("Beer Booth", ignoreCase = true)
+            // Specific items that only exist inside the hangar
+            val isHangarOnly = listOf("War Birds", "Pretzel")
+                .any { region.id.contains(it, ignoreCase = true) }
+            
+            // Items that can exist in both or are general
+            val isGeneralTableOrStation = (region.id.contains("Table", ignoreCase = true) || 
+                                         region.id.contains("Station", ignoreCase = true))
+
             if (showInside) {
-                // Inside: Show Beer Booths and non-interactive elements (backgrounds, labels)
-                isBeerBooth || !region.isClickable
+                // Inside: Show Beer Booths, Hangar-only items, and general items (Tables/Stations) if they are in the SVG
+                isBeerBooth || isHangarOnly || isGeneralTableOrStation || !region.isClickable
             } else {
-                // Outside: Show interactive elements except Beer Booths, and non-interactive elements
-                (!isBeerBooth && region.isClickable) || !region.isClickable
+                // Outside: Show interactive elements except Beer Booths and Hangar-only items, plus general items
+                ((!isBeerBooth && !isHangarOnly) && region.isClickable) || isGeneralTableOrStation || !region.isClickable
             }
         }
     }
@@ -1711,8 +1721,12 @@ fun EventMapContent(
                         modifier = Modifier
                             .fillMaxSize()
                             .clipToBounds()
-                            .pointerInput(filteredRegions, zoomScale, panOffset, svgWidth, svgHeight) {
+                            .pointerInput(filteredRegions) {
                                 detectTapGestures { offset ->
+                                    val sTotal = baseScale * zoomScale
+                                    val canvasWidth = size.width.toFloat()
+                                    val canvasHeight = size.height.toFloat()
+                                    
                                     val svgX = (offset.x - canvasWidth/2f - panOffset.x) / sTotal + svgWidth/2f + svgOffsetX
                                     val svgY = (offset.y - canvasHeight/2f - panOffset.y) / sTotal + svgHeight/2f + svgOffsetY
                                     
@@ -1729,6 +1743,9 @@ fun EventMapContent(
                                     val newScale = (oldScale * zoom).coerceIn(1f, 10f)
                                     val scaleFactor = newScale / oldScale
                                     
+                                    val canvasWidth = size.width.toFloat()
+                                    val canvasHeight = size.height.toFloat()
+
                                     panOffset = (panOffset * scaleFactor) + 
                                                (centroid - Offset(canvasWidth/2f, canvasHeight/2f)) * (1f - scaleFactor) + 
                                                pan
@@ -1775,14 +1792,6 @@ fun EventMapContent(
                                         )
                                     }
                                     
-                                    if (isSelected || isHearted) {
-                                        drawPath(
-                                            path = region.path,
-                                            color = Color.Black,
-                                            alpha = staticAlpha,
-                                            style = Stroke(width = 2f / (baseScale * zoomScale))
-                                        )
-                                    }
                                 }
                             }
                             canvas.restore()
@@ -1796,8 +1805,9 @@ fun EventMapContent(
                         val isHearted = heartedMapIds.contains(region.id)
                         val isSelected = region.id == selectedRegionId
                         
+                        val isTableOrWater = region.id.contains("Table", ignoreCase = true) || region.id.contains("Water", ignoreCase = true)
                         // Decide what to show based on zoom and heart status
-                        val shouldShowDetail = zoomScale > 2.0f || isHearted || isSelected
+                        val shouldShowDetail = zoomScale > 2.0f || isHearted || isSelected || isTableOrWater
                         if (!shouldShowDetail) return@forEach
 
                         val screenX = (region.center.x - (svgWidth/2f + svgOffsetX)) * sTotal + canvasWidth/2f + panOffset.x
@@ -1846,39 +1856,58 @@ fun EventMapContent(
                                                 contentScale = ContentScale.Crop
                                             )
                                         } 
-                                        // Priority 2: Medium Zoom or Hearted/Selected (if no logo) -> Show Booth Number
-                                        else if (zoomScale > 3.5f || isHearted || isSelected) {
-                                            val boothNum = region.id.filter { it.isDigit() }.ifEmpty { "?" }
-                                            Text(
-                                                text = boothNum,
-                                                style = MaterialTheme.typography.labelMedium.copy(
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = if (isHearted || isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                                        // Priority 2: Beer Booths -> Show Booth Number (if digit exists)
+                                        else if (region.id.contains("Beer Booth", ignoreCase = true)) {
+                                            val boothNum = region.id.filter { it.isDigit() }
+                                            if (boothNum.isNotEmpty() && (zoomScale > 3.5f || isHearted || isSelected)) {
+                                                Text(
+                                                    text = boothNum,
+                                                    style = MaterialTheme.typography.labelMedium.copy(
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = if (isHearted || isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                                                    )
                                                 )
-                                            )
-                                        } 
-                                        // Priority 3: Low Zoom -> Show Category Icon
+                                            } else {
+                                                Icon(
+                                                    imageVector = Icons.Default.LocalDrink,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(if (zoomScale > 3.5f) 20.dp else 12.dp),
+                                                    tint = if (isHearted || isSelected) Color.White else MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                        // Priority 3: All other interactive elements -> Show Relevant Icon
                                         else {
                                             val icon = when {
-                                                vendor?.category?.contains("Food", ignoreCase = true) == true || region.id.contains("Food", ignoreCase = true) -> Icons.Default.Restaurant
+                                                region.id.contains("Sponsor", ignoreCase = true) -> Icons.Default.Campaign
+                                                region.id.contains("Plane", ignoreCase = true) || region.id.contains("War Birds", ignoreCase = true) -> Icons.Default.AirplanemodeActive
+                                                region.id.contains("Pilot", ignoreCase = true) -> Icons.Default.Person
+                                                vendor?.category?.contains("Food", ignoreCase = true) == true || 
+                                                    listOf("Food", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "Medy")
+                                                        .any { region.id.contains(it, ignoreCase = true) } -> Icons.Default.Restaurant
                                                 region.id.contains("Entrance", ignoreCase = true) -> Icons.Default.MeetingRoom
-                                                region.id.contains("Restroom", ignoreCase = true) || region.id.contains("Toilet", ignoreCase = true) -> Icons.Default.Wc
-                                                region.id.contains("Stage", ignoreCase = true) || region.id.contains("Music", ignoreCase = true) -> Icons.Default.MusicNote
+                                                region.id.contains("Bathroom", ignoreCase = true) || region.id.contains("Restroom", ignoreCase = true) || region.id.contains("Toilet", ignoreCase = true) -> Icons.Default.Wc
+                                                region.id.contains("Stage", ignoreCase = true) || region.id.contains("Music", ignoreCase = true) || region.id.contains("DJ", ignoreCase = true) -> Icons.Default.MusicNote
                                                 region.id.contains("VIP", ignoreCase = true) -> Icons.Default.Star
                                                 region.id.contains("Information", ignoreCase = true) || region.id.contains("Info", ignoreCase = true) -> Icons.Default.Info
-                                                else -> Icons.Default.LocalDrink
+                                                region.id.contains("Balloon", ignoreCase = true) -> Icons.Default.Cloud
+                                                region.id.contains("Table", ignoreCase = true) -> Icons.Default.TableBar
+                                                region.id.contains("Cornhole", ignoreCase = true) -> Icons.Default.SportsScore
+                                                region.id.contains("Water", ignoreCase = true) -> Icons.Default.WaterDrop
+                                                region.id.contains("Photo", ignoreCase = true) -> Icons.Default.CameraAlt
+                                                else -> Icons.Default.Place
                                             }
                                             Icon(
                                                 imageVector = icon,
                                                 contentDescription = null,
-                                                modifier = Modifier.size(12.dp),
-                                                tint = MaterialTheme.colorScheme.primary
+                                                modifier = Modifier.size(if (zoomScale > 3.5f) 20.dp else 12.dp),
+                                                tint = if (isHearted || isSelected) Color.White else MaterialTheme.colorScheme.primary
                                             )
                                         }
                                     }
                                 }
-                                
-                                if (zoomScale > 7.5f || isSelected) {
+
+                                if (zoomScale > 3.0f) {
                                     Surface(
                                         modifier = Modifier.padding(top = 4.dp),
                                         shape = RoundedCornerShape(4.dp),
@@ -1918,24 +1947,6 @@ fun EventMapContent(
                         }
                     }
 
-                    // Floating Reset Button Overlay
-                    if (zoomScale != 1.5f || panOffset != Offset.Zero) {
-                        FilledTonalIconButton(
-                            onClick = {
-                                zoomScale = 1.5f
-                                panOffset = Offset.Zero
-                            },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(16.dp),
-                            shape = CircleShape,
-                            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
-                            )
-                        ) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Reset View")
-                        }
-                    }
                 }
 
                 SnackbarHost(
@@ -2108,7 +2119,7 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
     val viewBox = android.graphics.RectF(0f, 0f, 2000f, 2000f)
     
     val backgroundIds = setOf("Event Map Base", "Full Event Map", "Background", "HANGAR AREA", "OUTSIDE AREA", "ENTRANCE", "Frame 1")
-    val interactiveKeywords = listOf("Beer Booth", "Sponsor Tent", "Plane", "Pilot Tent", "Food Truck", "Entrance", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "War Birds", "Balloon", "Table", "Cornhole", "Medy", "Booth", "Bathroom")
+    val interactiveKeywords = listOf("Beer Booth", "Sponsor Tent", "Plane", "Pilot Tent", "Food Truck", "Entrance", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "War Birds", "Balloon", "Table", "Cornhole", "Medy", "Booth", "Bathroom", "VIP", "Skydiving")
 
     val hangarColor = Color(0xFF112240)
     val runwayColor = Color(0xFF1C1C1C)
