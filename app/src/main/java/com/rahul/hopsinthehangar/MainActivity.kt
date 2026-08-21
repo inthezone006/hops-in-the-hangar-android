@@ -1572,9 +1572,11 @@ fun EventMapContent(
 
     val filteredRegions = remember(regions, showInside) {
         regions.filter { region ->
-            val isBeerBooth = region.id.contains("Beer Booth", ignoreCase = true)
+            val isBeerBooth = region.id.contains("Beer Booth", ignoreCase = true) || 
+                             eventData?.vendors?.any { it.mapId == region.id || region.id.contains(it.name, ignoreCase = true) || it.name.contains(region.id, ignoreCase = true) } == true
+            
             // Specific items that only exist inside the hangar
-            val isHangarOnly = listOf("War Birds", "Pretzel")
+            val isHangarOnly = listOf("War Birds", "Pretzel", "Hangar", "Inside")
                 .any { region.id.contains(it, ignoreCase = true) }
             
             // Items that can exist in both or are general
@@ -1596,7 +1598,7 @@ fun EventMapContent(
     }
 
     val selectedVendor = remember(selectedRegionId, eventData) {
-        eventData?.vendors?.find { it.mapId == selectedRegionId || it.name == selectedRegionId }
+        eventData?.vendors?.find { it.mapId == selectedRegionId || it.name == selectedRegionId || (selectedRegionId != null && (it.name.contains(selectedRegionId!!, ignoreCase = true) || selectedRegionId!!.contains(it.name, ignoreCase = true))) }
     }
 
     val selectedSponsor = remember(selectedRegionId, eventData, selectedVendor) {
@@ -1740,7 +1742,7 @@ fun EventMapContent(
                             .pointerInput(filteredRegions) {
                                 detectTransformGestures { centroid, pan, zoom, _ ->
                                     val oldScale = zoomScale
-                                    val newScale = (oldScale * zoom).coerceIn(1f, 10f)
+                                    val newScale = (oldScale * zoom).coerceIn(1f, 25f)
                                     val scaleFactor = newScale / oldScale
                                     
                                     val canvasWidth = size.width.toFloat()
@@ -1801,13 +1803,13 @@ fun EventMapContent(
                     // Map Overlays (Icons and Labels)
                     filteredRegions.forEach { region ->
                         if (!region.isClickable) return@forEach
-                        val vendor = eventData?.vendors?.find { it.mapId == region.id }
+                        val vendor = eventData?.vendors?.find { it.mapId == region.id || it.name == region.id || it.name.contains(region.id, ignoreCase = true) || region.id.contains(it.name, ignoreCase = true) }
                         val isHearted = heartedMapIds.contains(region.id)
                         val isSelected = region.id == selectedRegionId
                         
                         val isTableOrWater = region.id.contains("Table", ignoreCase = true) || region.id.contains("Water", ignoreCase = true)
                         // Decide what to show based on zoom and heart status
-                        val shouldShowDetail = zoomScale > 2.0f || isHearted || isSelected || isTableOrWater
+                        val shouldShowDetail = zoomScale > 1.5f || isHearted || isSelected || isTableOrWater
                         if (!shouldShowDetail) return@forEach
 
                         val screenX = (region.center.x - (svgWidth/2f + svgOffsetX)) * sTotal + canvasWidth/2f + panOffset.x
@@ -1907,7 +1909,7 @@ fun EventMapContent(
                                     }
                                 }
 
-                                if (zoomScale > 3.0f) {
+                                if (zoomScale > 1.5f) {
                                     Surface(
                                         modifier = Modifier.padding(top = 4.dp),
                                         shape = RoundedCornerShape(4.dp),
@@ -2118,8 +2120,8 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
     val groupIds = mutableListOf<String>()
     val viewBox = android.graphics.RectF(0f, 0f, 2000f, 2000f)
     
-    val backgroundIds = setOf("Event Map Base", "Full Event Map", "Background", "HANGAR AREA", "OUTSIDE AREA", "ENTRANCE", "Frame 1")
-    val interactiveKeywords = listOf("Beer Booth", "Sponsor Tent", "Plane", "Pilot Tent", "Food Truck", "Entrance", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "War Birds", "Balloon", "Table", "Cornhole", "Medy", "Booth", "Bathroom", "VIP", "Skydiving")
+    val backgroundIds = setOf("Event Map Base", "Full Event Map", "Background", "HANGAR AREA", "OUTSIDE AREA", "ENTRANCE", "Frame 1", "Inside", "Outside", "Rectangle 1")
+    val interactiveKeywords = listOf("Beer Booth", "Sponsor Tent", "Plane", "Pilot Tent", "Food Truck", "Entrance", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "War Birds", "Balloon", "Table", "Cornhole", "Medy", "Booth", "Bathroom", "VIP", "Skydiving", "Brewery", "Brewing", "Brew", "Beer", "Ale", "Cider", "Meade", "Spirits", "Winery", "Wine")
 
     val hangarColor = Color(0xFF112240)
     val runwayColor = Color(0xFF1C1C1C)
@@ -2131,7 +2133,7 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
         when (eventType) {
             XmlPullParser.START_TAG -> {
                 val rawId = parser.getAttributeValue(null, "id")
-                val id = rawId?.replace(Regex("_\\d+$"), "")
+                val id = rawId
                 val transform = parser.getAttributeValue(null, "transform")
                 
                 if (tagName == "svg") {
