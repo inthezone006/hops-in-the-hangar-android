@@ -465,7 +465,8 @@ data class SponsorItem(
     val level: String,
     val description: String,
     val website: String? = null,
-    val links: List<SponsorLink>? = null
+    val links: List<SponsorLink>? = null,
+    val mapId: String? = null
 )
 
 @Serializable
@@ -495,9 +496,13 @@ data class HotelItem(val name: String, val link: String)
 suspend fun loadEventData(context: Context): EventData? = withContext(Dispatchers.IO) {
     try {
         val jsonString = context.assets.open("event_data.json").bufferedReader().use { it.readText() }
-        Json.decodeFromString<EventData>(jsonString)
+        val json = Json { 
+            ignoreUnknownKeys = true
+            coerceInputValues = true
+        }
+        json.decodeFromString<EventData>(jsonString)
     } catch (e: Exception) {
-        Log.e("DataLoader", "Error loading event data", e)
+        Log.e("DataLoader", "Error loading event data: ${e.message}", e)
         null
     }
 }
@@ -983,7 +988,7 @@ fun SponsorsScreen(sponsors: List<SponsorItem>, onSponsorClick: (String) -> Unit
                             } else {
                                 val url = links?.firstOrNull()?.url ?: sponsor.website
                                 
-                                val noWebsiteSponsors = setOf("lewis horticultural", "askren balloon team", "kara goheen friends")
+                                val noWebsiteSponsors = setOf("lewis horticultural", "askren balloon team", "kara goheen friends", "rh seals")
                                 val isNoWebsite = noWebsiteSponsors.any { sponsor.name.lowercase().contains(it) }
 
                                 if (isNoWebsite || url.isNullOrBlank()) {
@@ -1014,7 +1019,14 @@ fun SponsorsScreen(sponsors: List<SponsorItem>, onSponsorClick: (String) -> Unit
                             ) 
                         },
                         leadingContent = {
-                            val names = sponsor.name.split("&").map { it.trim() }
+                            val names = if (
+                                sponsor.name.contains("Kara Goheen", ignoreCase = true) || 
+                                sponsor.name.contains("Affordable Dentures", ignoreCase = true)
+                            ) {
+                                listOf(sponsor.name)
+                            } else {
+                                sponsor.name.split("&").map { it.trim() }
+                            }
                             Box(
                                 modifier = Modifier
                                     .padding(top = 8.dp) // Move down to center visually
@@ -1023,7 +1035,13 @@ fun SponsorsScreen(sponsors: List<SponsorItem>, onSponsorClick: (String) -> Unit
                                 contentAlignment = Alignment.CenterStart
                             ) {
                                 names.forEachIndexed { index, name ->
-                                    val resourceName = name.lowercase().replace(" ", "_").replace(Regex("[^a-z0-9_]"), "")
+                                    val resourceName = name.lowercase()
+                                        .replace("&", " and ")
+                                        .replace(" ", "_")
+                                        .replace(Regex("[^a-z0-9_]"), "")
+                                        .replace(Regex("__+"), "_")
+                                        .trim('_')
+
                                     val context = LocalContext.current
                                     val resourceId = context.resources.getIdentifier(resourceName, "drawable", context.packageName)
                                     
@@ -1159,7 +1177,12 @@ fun VendorsScreen(
                         },
                         leadingContent = {
                             val context = LocalContext.current
-                            val resourceName = vendor.name.lowercase().replace(" ", "_").replace(Regex("[^a-z0-9_]"), "")
+                            val resourceName = vendor.name.lowercase()
+                                .replace("&", " and ")
+                                .replace(" ", "_")
+                                .replace(Regex("[^a-z0-9_]"), "")
+                                .replace(Regex("__+"), "_")
+                                .trim('_')
                             val resourceId = context.resources.getIdentifier(resourceName, "drawable", context.packageName)
 
                             Box(modifier = Modifier.padding(top = 8.dp)) { // Move down to center visually
@@ -1289,7 +1312,7 @@ fun DetailScreen(type: String, id: String, item: Any?) {
         }
         
         if (email != null || phone != null || website != null) {
-            val noWebsiteNames = setOf("lewis horticultural", "askren balloon team", "kara goheen friends")
+            val noWebsiteNames = setOf("lewis horticultural", "askren balloon team", "kara goheen friends", "rh seals")
             val isNoWebsite = noWebsiteNames.any { id.lowercase().contains(it) }
 
             ElevatedCard(
@@ -1603,7 +1626,7 @@ fun EventMapContent(
 
     val selectedSponsor = remember(selectedRegionId, eventData, selectedVendor) {
         if (selectedVendor == null) {
-            eventData?.sponsors?.find { it.name == selectedRegionId }
+            eventData?.sponsors?.find { it.mapId == selectedRegionId || it.name == selectedRegionId || (selectedRegionId != null && (it.name.contains(selectedRegionId!!, ignoreCase = true) || selectedRegionId!!.contains(it.name, ignoreCase = true))) }
         } else null
     }
 
@@ -1723,7 +1746,7 @@ fun EventMapContent(
                         modifier = Modifier
                             .fillMaxSize()
                             .clipToBounds()
-                            .pointerInput(filteredRegions) {
+                            .pointerInput(filteredRegions, baseScale, svgOffsetX, svgOffsetY) {
                                 detectTapGestures { offset ->
                                     val sTotal = baseScale * zoomScale
                                     val canvasWidth = size.width.toFloat()
@@ -1733,13 +1756,14 @@ fun EventMapContent(
                                     val svgY = (offset.y - canvasHeight/2f - panOffset.y) / sTotal + svgHeight/2f + svgOffsetY
                                     
                                     val clickedRegion = filteredRegions.findLast { region ->
-                                        region.isClickable && hitTest(region.path, svgX, svgY)
+                                        (region.isClickable || region.id.contains("Table") || region.id.contains("Station")) && 
+                                        hitTest(region.path, svgX, svgY)
                                     }
                                     
                                     selectedRegionId = clickedRegion?.id
                                 }
                             }
-                            .pointerInput(filteredRegions) {
+                            .pointerInput(filteredRegions, baseScale) {
                                 detectTransformGestures { centroid, pan, zoom, _ ->
                                     val oldScale = zoomScale
                                     val newScale = (oldScale * zoom).coerceIn(1f, 25f)
@@ -1833,7 +1857,12 @@ fun EventMapContent(
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            val resourceName = vendor?.name?.lowercase()?.replace(" ", "_")?.replace(Regex("[^a-z0-9_]"), "")
+                            val resourceName = vendor?.name?.lowercase()
+                                ?.replace("&", " and ")
+                                ?.replace(" ", "_")
+                                ?.replace(Regex("[^a-z0-9_]"), "")
+                                ?.replace(Regex("__+"), "_")
+                                ?.trim('_')
                             val resourceId = if (resourceName != null) context.resources.getIdentifier(resourceName, "drawable", context.packageName) else 0
 
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1884,8 +1913,11 @@ fun EventMapContent(
                                                 region.id.contains("Sponsor", ignoreCase = true) -> Icons.Default.Campaign
                                                 region.id.contains("Plane", ignoreCase = true) || region.id.contains("War Birds", ignoreCase = true) -> Icons.Default.AirplanemodeActive
                                                 region.id.contains("Pilot", ignoreCase = true) -> Icons.Default.Person
+                                                vendor?.category?.contains("Brewery", ignoreCase = true) == true ||
+                                                    listOf("Brewery", "Brewing", "Brew", "Beer", "Ale", "Cider", "Meade", "Wing")
+                                                        .any { region.id.contains(it, ignoreCase = true) } -> Icons.Default.LocalBar
                                                 vendor?.category?.contains("Food", ignoreCase = true) == true || 
-                                                    listOf("Food", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "Medy")
+                                                    listOf("Food", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "Medy", "Pretzel")
                                                         .any { region.id.contains(it, ignoreCase = true) } -> Icons.Default.Restaurant
                                                 region.id.contains("Entrance", ignoreCase = true) -> Icons.Default.MeetingRoom
                                                 region.id.contains("Bathroom", ignoreCase = true) || region.id.contains("Restroom", ignoreCase = true) || region.id.contains("Toilet", ignoreCase = true) -> Icons.Default.Wc
@@ -2121,7 +2153,7 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
     val viewBox = android.graphics.RectF(0f, 0f, 2000f, 2000f)
     
     val backgroundIds = setOf("Event Map Base", "Full Event Map", "Background", "HANGAR AREA", "OUTSIDE AREA", "ENTRANCE", "Frame 1", "Inside", "Outside", "Rectangle 1")
-    val interactiveKeywords = listOf("Beer Booth", "Sponsor Tent", "Plane", "Pilot Tent", "Food Truck", "Entrance", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "War Birds", "Balloon", "Table", "Cornhole", "Medy", "Booth", "Bathroom", "VIP", "Skydiving", "Brewery", "Brewing", "Brew", "Beer", "Ale", "Cider", "Meade", "Spirits", "Winery", "Wine")
+    val interactiveKeywords = listOf("Beer Booth", "Sponsor Tent", "Plane", "Pilot Tent", "Food Truck", "Entrance", "Grill", "Truck", "Wagon", "Pizza", "Italian", "Mac", "Station", "War Birds", "Balloon", "Table", "Cornhole", "Medy", "Booth", "Bathroom", "VIP", "Skydiving", "Brewery", "Brewing", "Brew", "Beer", "Ale", "Cider", "Meade", "Spirits", "Winery", "Wine", "Wing")
 
     val hangarColor = Color(0xFF112240)
     val runwayColor = Color(0xFF1C1C1C)
