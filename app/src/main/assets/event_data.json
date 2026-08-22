@@ -24,7 +24,7 @@
     { "name": "Lewis Horticultural Service", "level": "Business Class", "description": "Business Class Sponsor", "website": "http://lewishorticultural.com" },
     { "name": "BB Tech Services", "level": "Business Class", "description": "Business Class Sponsor", "website": "https://bbtechservices.com" },
     { "name": "Middletown Community Foundation", "level": "Coach Class", "description": "Coach Class Sponsor", "website": "https://mcfoundation.org" },
-    { "name": "Askren Air Balloon Team", "level": "Business Class", "description": "Business Class Sponsor", "website": "https://askrenballoonteam.com" },
+    { "name": "Askren Air Balloon Team", "level": "Business Class", "description": "Business Class Sponsor", "website": "https://askrenballoonteam.com", "mapId": "Askren Air Balloon Team" },
     { "name": "RH Seals", "level": "Coach Class", "description": "Coach Class Sponsor", "website": "https://www.rhseals.com/" },
     { "name": "Cook Howard Law Ltd.", "level": "Coach Class", "description": "Coach Class Sponsor", "website": "https://www.cookhowardlaw.com/" },
     { "name": "Hanke Optometry", "level": "Coach Class", "description": "Coach Class Sponsor", "website": "https://www.hankeoptometry.com/" },
@@ -40,23 +40,239 @@
     { "name": "Affordable Dentures & Implants", "level": "Passport", "description": "Passport Sponsor", "website": "https://www.affordabledentures.com/" },
     { "name": "Veracruz Mexican Restaurant", "level": "Passport", "description": "Passport Sponsor", "website": "https://www.facebook.com/veracruzmiddletown/" },
     { "name": "Renewal by Andersen", "level": "Passport", "description": "Passport Sponsor", "website": "https://www.renewalbyandersen.com/" },
-    { "name": "New Ales Brewing", "level": "Brewery", "description": "Sponsoring Brewery", "website": "https://www.newalesbrewing.com" },
-    { "name": "Heavier Than Air Brewing Co.", "level": "Brewery", "description": "Sponsoring Brewery", "website": "https://heavierthanairbrewing.com/" },
-    { "name": "Loose Ends Brewing Company", "level": "Brewery", "description": "Sponsoring Brewery", "website": "https://looseendsbrewing.com/" }
+    { "name": "New Ales Brewing", "level": "Brewery", "description": "Sponsoring Brewery", "website": "https://www.newalesbrewing.com", "mapId": "New Ales" },
+    { "name": "Heavier Than Air Brewing Co.", "level": "Brewery", "description": "Sponsoring Brewery", "website": "https://heavierthanairbrewing.com/", "mapId": "Heavier than Air" },
+    { "name": "Loose Ends Brewing Company", "level": "Brewery", "description": "Sponsoring Brewery", "website": "https://looseendsbrewing.com/", "mapId": "Loose Ends" }
   ],
   "vendors": [
-    { "name": "High Grain Brewing", "category": "Brewery", "description": "Cincinnati, OH", "email": "info@highgrainbrewing.com", "phone": "513-620-8300", "website": "https://highgrainbrewing.com", "mapId": "Beer Booth 1" },
-    { "name": "Dafuque Beer Company", "category": "Brewery", "description": "Local Favorite", "email": "info@dafuquebeer.com", "phone": "614-204-5147", "website": "https://dafuquebeer.com", "mapId": "Beer Booth 2" },
-    { "name": "Streetside Brewery", "category": "Brewery", "description": "Cincinnati, OH", "email": "info@streetsidebrewery.com", "phone": "513-615-5877", "website": "https://streetsidebrewery.com", "mapId": "Beer Booth 3" },
-    { "name": "Loose Ends Brewing", "category": "Brewery", "description": "Centerville, OH", "email": "info@looseendsbrewing.com", "phone": "937-723-6328", "website": "https://www.looseendsbrewing.com", "mapId": "Beer Booth 4" },
-    { "name": "Third Eye Brewing", "category": "Brewery", "description": "Sharonville, OH", "email": "info@thirdeyebrewingco.com", "phone": "513-771-2739", "website": "https://thirdeyebrewingco.com", "mapId": "Beer Booth 5" },
-    { "name": "Gravel Road Brewing Co", "category": "Brewery", "description": "Middletown, OH", "email": "contact@gravelroadbrewing.com", "phone": "513-594-8251", "website": "http://gravelroadbrewing.com", "mapId": "Beer Booth 6" },
-    { "name": "Depot Brewing Company", "category": "Brewery", "description": "Fairborn, OH", "email": "contact@depotbrewing.com", "phone": "513-796-3661", "website": "https://www.depotbrewing.com", "mapId": "Beer Booth 7" },
-    { "name": "Sonder Brewing", "category": "Brewery", "description": "Mason, OH", "email": "contactus@sonderbrewing.com", "phone": "513-779-2739", "website": "https://sonderbrewing.com", "mapId": "Beer Booth 8" },
-    { "name": "Stevens Point Brewery", "category": "Brewery", "description": "Stevens Point, WI", "email": "info@pointbeer.com", "phone": "715-344-9310", "website": "https://www.pointbeer.com", "mapId": "Beer Booth 9" },
-    { "name": "Heavier Than Air Brewing Co", "category": "Brewery", "description": "Centerville, OH", "email": "info@heavierthanairbrewing.com", "phone": "937-433-1500", "website": "https://heavierthanairbrewing.com", "mapId": "Beer Booth 10" },
-    { "name": "NEW Ales Brewing", "category": "Brewery", "description": "Middletown, OH", "email": "middletownbeerandsandwiches@gmail.com", "phone": "513-915-7023", "website": "https://www.newalesbrewing.com", "mapId": "Beer Booth 11" },
-    { "name": "BC's Brewing Company", "category": "Brewery", "description": "Mason, OH", "email": "info@bcsbrewing.com", "phone": "513-847-6866", "website": "https://www.bcsbrewing.com", "mapId": "Beer Booth 12" }
+    {
+      "name": "Hamburger Wagon",
+      "category": "Food Vendor",
+      "description": "Miamisburg, OH",
+      "email": "playmiamisburg@cityofmiamisburg.com",
+      "phone": "937-866-8999",
+      "website": "https://www.hamburgerwagon.com/",
+      "mapId": "Hamburger Wagon"
+    },
+    {
+      "name": "Mama Bear's Mac",
+      "category": "Food Vendor",
+      "description": "West Chester, OH",
+      "email": "info@mamabearsmac.com",
+      "phone": "513-349-4612",
+      "website": "https://www.mamabearsmac.com",
+      "mapId": "Mama Bear's Mac"
+    },
+    {
+      "name": "Little Chef Medy",
+      "category": "Food Vendor",
+      "description": "Cincinnati, OH",
+      "email": "littlechefmedy@littlechefmedy.com",
+      "phone": "513-802-2580",
+      "website": "https://littlechefmedy.com/",
+      "mapId": "Little Chef Medy"
+    },
+    {
+      "name": "Schmidt's Sausage Truck",
+      "category": "Food Vendor",
+      "description": "Columbus, OH",
+      "email": "info@schmidthaus.com",
+      "phone": "614-444-6808",
+      "website": "https://schmidthaus.com/schmidts-sausage-truck",
+      "mapId": "Schmidt's Sausage Truck"
+    },
+    {
+      "name": "Graeter's",
+      "category": "Dessert / Ice Cream",
+      "description": "Cincinnati & Dayton, OH",
+      "email": "customercare@graeters.com",
+      "phone": "800-721-3323",
+      "website": "https://www.graeters.com/",
+      "mapId": "Graeters "
+    },
+    {
+      "name": "El Diablos Grill",
+      "category": "Food Vendor",
+      "description": "Dayton, OH",
+      "email": "info@eldiablosgrill.com",
+      "phone": "937-555-0199",
+      "website": "https://streetfoodfinder.com/ElDiabloGrill",
+      "mapId": "El Diablo Grill"
+    },
+    {
+      "name": "Salty Z Pretzels",
+      "category": "Food Vendor",
+      "description": "Ohio Mobile Food Trailer",
+      "email": "office@mvdsa.org",
+      "phone": "937-576-0779",
+      "website": "https://saltyzpretzels.com/",
+      "mapId": "Meijer Pretzel Station"
+    },
+    {
+      "name": "Fatto A Mano",
+      "category": "Food Vendor",
+      "description": "Cincinnati, OH",
+      "email": "info@elegantbitecatering.com",
+      "phone": "513-555-0144",
+      "website": "https://streetfoodfinder.com/FattoaManoOhio",
+      "mapId": "Fatto A Mano Wood Fired Pizza"
+    },
+    {
+      "name": "Schiawones",
+      "category": "Food Vendor",
+      "description": "Middletown / Southwest, OH",
+      "email": "info@schiawones.com",
+      "phone": "513-555-0188",
+      "website": "https://www.schiawones.com",
+      "mapId": "Schiavone's Italian"
+    },
+    {
+      "name": "BC's Brewing Company",
+      "category": "Brewery",
+      "description": "Mason, OH",
+      "website": "https://www.bcsbrewing.com",
+      "mapId": "BC's Brewery Company"
+    },
+    {
+      "name": "Warped Wing Brewing Co.",
+      "category": "Brewery",
+      "description": "Dayton, OH",
+      "website": "https://warpedwing.com/",
+      "mapId": "Warped Wing"
+    },
+    {
+      "name": "Third Eye Brewing",
+      "category": "Brewery",
+      "description": "Sharonville, OH",
+      "website": "https://thirdeyebrewingco.com",
+      "mapId": "Third Eye Brewing"
+    },
+    {
+      "name": "Depot Brewing Company",
+      "category": "Brewery",
+      "description": "Fairborn, OH",
+      "website": "https://www.depotbrewing.com",
+      "mapId": "Depot Brewing"
+    },
+    {
+      "name": "High Grain Brewing",
+      "category": "Brewery",
+      "description": "Cincinnati, OH",
+      "website": "https://highgrainbrewing.com",
+      "mapId": "High Grain Brewing"
+    },
+    {
+      "name": "Astra Brewing Co.",
+      "category": "Brewery",
+      "description": "Cincinnati, OH",
+      "website": "https://astrabrewing.com/",
+      "mapId": "Astra Brewing"
+    },
+    {
+      "name": "Municipal Brew Works",
+      "category": "Brewery",
+      "description": "Hamilton, OH",
+      "website": "https://www.municipalbrewworks.com/",
+      "mapId": "Municipal Brew Works"
+    },
+    {
+      "name": "Brewer's Association",
+      "category": "Brewery",
+      "description": "National Association",
+      "website": "https://www.brewersassociation.org/",
+      "mapId": "Brewer's Association"
+    },
+    {
+      "name": "Streetside Brewery",
+      "category": "Brewery",
+      "description": "Cincinnati, OH",
+      "website": "https://streetsidebrewery.com",
+      "mapId": "Street Side"
+    },
+    {
+      "name": "MadTree Brewing Company",
+      "category": "Brewery",
+      "description": "Cincinnati, OH",
+      "website": "https://www.madtreebrewing.com/",
+      "mapId": "MadTree Brewing Company"
+    },
+    {
+      "name": "Sonder Brewing",
+      "category": "Brewery",
+      "description": "Mason, OH",
+      "website": "https://sonderbrewing.com/",
+      "mapId": "Sonder Brewing"
+    },
+    {
+      "name": "Toxic Brew Company",
+      "category": "Brewery",
+      "description": "Dayton, OH",
+      "website": "https://toxicbrewcompany.com/",
+      "mapId": "Toxic Brew Company"
+    },
+    {
+      "name": "Heidelberg Distributing",
+      "category": "Brewery",
+      "description": "Distributor",
+      "website": "https://www.heidelbergdistributing.com/",
+      "mapId": "Heidelberg"
+    },
+    {
+      "name": "BrewDog Brewery",
+      "category": "Brewery",
+      "description": "Columbus, OH",
+      "website": "https://www.brewdog.com/usa",
+      "mapId": "BrewDog Brewery"
+    },
+    {
+      "name": "Stevens Point Brewery",
+      "category": "Brewery",
+      "description": "Stevens Point, WI",
+      "website": "https://www.pointbeer.com",
+      "mapId": "Stevens Point Brewery"
+    },
+    {
+      "name": "Dafuque Beer Company",
+      "category": "Brewery",
+      "description": "Local Favorite",
+      "website": "https://dafuquebeer.com",
+      "mapId": "DaFuque Beer"
+    },
+    {
+      "name": "Happenstance Brewing Company",
+      "category": "Brewery",
+      "description": "Cincinnati, OH",
+      "website": "https://www.happenstancebrewing.com/",
+      "mapId": "Happenstance Brewing"
+    },
+    {
+      "name": "Gravel Road Brewing Co",
+      "category": "Brewery",
+      "description": "Middletown, OH",
+      "website": "http://gravelroadbrewing.com",
+      "mapId": "Gravel Road"
+    },
+    {
+      "name": "Bitburger Brewery",
+      "category": "Brewery",
+      "description": "Germany",
+      "website": "https://www.bitburger.com/",
+      "mapId": "Bitburger"
+    },
+    {
+      "name": "Dead Low Brewing",
+      "category": "Brewery",
+      "description": "Cincinnati, OH",
+      "website": "https://www.deadlowbrewing.com/",
+      "mapId": "Dead Low"
+    },
+    {
+      "name": "Brink Brewing Co.",
+      "category": "Brewery",
+      "description": "Cincinnati, OH",
+      "website": "https://www.brinkbrewing.com/",
+      "mapId": "Brink"
+    }
   ],
   "schedule": [
     { "time": "4:00 PM", "event": "VIP Early Access" },
