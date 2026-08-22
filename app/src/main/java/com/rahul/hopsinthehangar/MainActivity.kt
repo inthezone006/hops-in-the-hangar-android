@@ -326,6 +326,10 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                     sponsors = eventData?.sponsors ?: emptyList(),
                     onSponsorClick = { id -> 
                         navController.navigate("detail/sponsor/$id")
+                    },
+                    favoriteIds = favoriteIds.toList(),
+                    onToggleFavorite = { id -> 
+                        scope.launch { repository.toggleFavorite(id) }
                     }
                 ) 
             }
@@ -900,7 +904,12 @@ fun GlassCard(title: String, description: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SponsorsScreen(sponsors: List<SponsorItem>, onSponsorClick: (String) -> Unit) {
+fun SponsorsScreen(
+    sponsors: List<SponsorItem>, 
+    onSponsorClick: (String) -> Unit,
+    favoriteIds: List<String>,
+    onToggleFavorite: (String) -> Unit
+) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     val filteredSponsors = sponsors.filter {
@@ -977,6 +986,7 @@ fun SponsorsScreen(sponsors: List<SponsorItem>, onSponsorClick: (String) -> Unit
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             items(filteredSponsors) { sponsor ->
+                val isFavorite = favoriteIds.contains(sponsor.name)
                 ElevatedCard(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1080,7 +1090,16 @@ fun SponsorsScreen(sponsors: List<SponsorItem>, onSponsorClick: (String) -> Unit
                                 }
                             }
                         },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        trailingContent = {
+                            IconButton(onClick = { onToggleFavorite(sponsor.name) }) {
+                                Icon(
+                                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                    contentDescription = "Favorite",
+                                    tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        }
                     )
                 }
             }
@@ -1641,9 +1660,11 @@ fun EventMapContent(
     var svgOffsetY by remember { mutableFloatStateOf(0f) }
 
     val heartedMapIds = remember(eventData, favoriteIds) {
-        eventData?.vendors?.filter { favoriteIds.contains(it.name) }
-            ?.mapNotNull { it.mapId ?: it.name }
-            ?.toSet() ?: emptySet()
+        val vendorMapIds = eventData?.vendors?.filter { favoriteIds.contains(it.name) }
+            ?.mapNotNull { it.mapId ?: it.name } ?: emptyList()
+        val sponsorMapIds = eventData?.sponsors?.filter { favoriteIds.contains(it.name) }
+            ?.mapNotNull { it.mapId ?: it.name } ?: emptyList()
+        (vendorMapIds + sponsorMapIds).toSet()
     }
 
     LaunchedEffect(showInside) {
@@ -1756,7 +1777,9 @@ fun EventMapContent(
                                     val svgY = (offset.y - canvasHeight/2f - panOffset.y) / sTotal + svgHeight/2f + svgOffsetY
                                     
                                     val clickedRegion = filteredRegions.findLast { region ->
-                                        (region.isClickable || region.id.contains("Table") || region.id.contains("Station")) && 
+                                        val matchesVendorOrSponsor = eventData?.vendors?.any { it.mapId == region.id || it.name == region.id || (region.id != null && it.name.contains(region.id, ignoreCase = true)) } == true ||
+                                                                    eventData?.sponsors?.any { it.mapId == region.id || it.name == region.id || (region.id != null && it.name.contains(region.id, ignoreCase = true)) } == true
+                                        (region.isClickable || matchesVendorOrSponsor || region.id.contains("Table") || region.id.contains("Station")) && 
                                         hitTest(region.path, svgX, svgY)
                                     }
                                     
@@ -1803,6 +1826,13 @@ fun EventMapContent(
                                                 dstOffset = IntOffset(bounds.left.toInt(), bounds.top.toInt()),
                                                 dstSize = IntSize(bounds.width.toInt(), bounds.height.toInt()),
                                                 alpha = staticAlpha
+                                            )
+                                        }
+                                        if (isHearted || isSelected) {
+                                            drawPath(
+                                                path = region.path,
+                                                color = if (isSelected) primaryColor else favoriteColor,
+                                                style = Stroke(width = 10f)
                                             )
                                         }
                                     } else {
