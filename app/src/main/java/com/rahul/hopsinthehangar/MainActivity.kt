@@ -119,6 +119,21 @@ import android.util.Base64
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 
+fun getResourceName(name: String?): String {
+    if (name == null) return ""
+    // Special case for Mama Bear's Mac
+    if (name.contains("Mama Bear", ignoreCase = true) && name.contains("Mac", ignoreCase = true)) {
+        return "mamabears_mac"
+    }
+    
+    return name.lowercase()
+        .replace("&", " and ")
+        .replace(" ", "_")
+        .replace(Regex("[^a-z0-9_]"), "")
+        .replace(Regex("__+"), "_")
+        .trim('_')
+}
+
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "favorites")
 
 class FavoritesRepository(private val dataStore: DataStore<Preferences>) {
@@ -1045,13 +1060,7 @@ fun SponsorsScreen(
                                 contentAlignment = Alignment.CenterStart
                             ) {
                                 names.forEachIndexed { index, name ->
-                                    val resourceName = name.lowercase()
-                                        .replace("&", " and ")
-                                        .replace(" ", "_")
-                                        .replace(Regex("[^a-z0-9_]"), "")
-                                        .replace(Regex("__+"), "_")
-                                        .trim('_')
-
+                                    val resourceName = getResourceName(name)
                                     val context = LocalContext.current
                                     val resourceId = context.resources.getIdentifier(resourceName, "drawable", context.packageName)
                                     
@@ -1196,12 +1205,7 @@ fun VendorsScreen(
                         },
                         leadingContent = {
                             val context = LocalContext.current
-                            val resourceName = vendor.name.lowercase()
-                                .replace("&", " and ")
-                                .replace(" ", "_")
-                                .replace(Regex("[^a-z0-9_]"), "")
-                                .replace(Regex("__+"), "_")
-                                .trim('_')
+                            val resourceName = getResourceName(vendor.name)
                             val resourceId = context.resources.getIdentifier(resourceName, "drawable", context.packageName)
 
                             Box(modifier = Modifier.padding(top = 8.dp)) { // Move down to center visually
@@ -1614,12 +1618,14 @@ fun EventMapContent(
 
     val filteredRegions = remember(regions, showInside) {
         regions.filter { region ->
+            val vendorForRegion = eventData?.vendors?.find { it.mapId == region.id || it.name == region.id || region.id.contains(it.name, ignoreCase = true) || it.name.contains(region.id, ignoreCase = true) }
             val isBeerBooth = region.id.contains("Beer Booth", ignoreCase = true) || 
-                             eventData?.vendors?.any { it.mapId == region.id || region.id.contains(it.name, ignoreCase = true) || it.name.contains(region.id, ignoreCase = true) } == true
+                             vendorForRegion?.category?.contains("Brewery", ignoreCase = true) == true
             
             // Specific items that only exist inside the hangar
             val isHangarOnly = listOf("War Birds", "Pretzel", "Hangar", "Inside")
-                .any { region.id.contains(it, ignoreCase = true) }
+                .any { region.id.contains(it, ignoreCase = true) } ||
+                vendorForRegion?.mapId?.contains("Hangar", ignoreCase = true) == true
             
             // Items that can exist in both or are general
             val isGeneralTableOrStation = (region.id.contains("Table", ignoreCase = true) || 
@@ -1856,14 +1862,18 @@ fun EventMapContent(
 
                     // Map Overlays (Icons and Labels)
                     filteredRegions.forEach { region ->
-                        if (!region.isClickable) return@forEach
                         val vendor = eventData?.vendors?.find { it.mapId == region.id || it.name == region.id || it.name.contains(region.id, ignoreCase = true) || region.id.contains(it.name, ignoreCase = true) }
+                        val sponsor = if (vendor == null) eventData?.sponsors?.find { it.mapId == region.id || it.name == region.id || it.name.contains(region.id, ignoreCase = true) || region.id.contains(it.name, ignoreCase = true) } else null
+                        
+                        val isTableOrWater = region.id.contains("Table", ignoreCase = true) || region.id.contains("Water", ignoreCase = true)
+                        val isInteractive = region.isClickable || vendor != null || sponsor != null || isTableOrWater
+                        
+                        if (!isInteractive) return@forEach
                         val isHearted = heartedMapIds.contains(region.id)
                         val isSelected = region.id == selectedRegionId
                         
-                        val isTableOrWater = region.id.contains("Table", ignoreCase = true) || region.id.contains("Water", ignoreCase = true)
                         // Decide what to show based on zoom and heart status
-                        val shouldShowDetail = zoomScale > 1.5f || isHearted || isSelected || isTableOrWater
+                        val shouldShowDetail = zoomScale > 1.5f || isHearted || isSelected
                         if (!shouldShowDetail) return@forEach
 
                         val screenX = (region.center.x - (svgWidth/2f + svgOffsetX)) * sTotal + canvasWidth/2f + panOffset.x
@@ -1887,13 +1897,9 @@ fun EventMapContent(
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            val resourceName = vendor?.name?.lowercase()
-                                ?.replace("&", " and ")
-                                ?.replace(" ", "_")
-                                ?.replace(Regex("[^a-z0-9_]"), "")
-                                ?.replace(Regex("__+"), "_")
-                                ?.trim('_')
-                            val resourceId = if (resourceName != null) context.resources.getIdentifier(resourceName, "drawable", context.packageName) else 0
+                            val itemName = vendor?.name ?: sponsor?.name
+                            val resourceName = getResourceName(itemName)
+                            val resourceId = if (resourceName.isNotEmpty()) context.resources.getIdentifier(resourceName, "drawable", context.packageName) else 0
 
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Surface(
@@ -1908,11 +1914,11 @@ fun EventMapContent(
                                     tonalElevation = 4.dp
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
-                                        // Priority 1: High Zoom or Hearted/Selected -> Show Logo
-                                        if ((zoomScale > 5.5f || isHearted || isSelected) && resourceId != 0) {
+                                        // Priority 1: Show Logo if resource exists
+                                        if (resourceId != 0) {
                                             AsyncImage(
                                                 model = resourceId,
-                                                contentDescription = vendor?.name,
+                                                contentDescription = itemName,
                                                 modifier = Modifier.fillMaxSize().clip(CircleShape),
                                                 contentScale = ContentScale.Crop
                                             )
@@ -2226,6 +2232,10 @@ fun parseSvg(inputStream: java.io.InputStream): Pair<List<MapRegion>, android.gr
                     val finalId = (id ?: groupIds.lastOrNull { it.isNotEmpty() } ?: "untagged_${tagName}_${System.currentTimeMillis()}").let {
                         var cleaned = it.replace("_", " ")
                         if (cleaned == "Beer Booth") cleaned = "Beer Booth 1"
+                        // Remove trailing numbers from Tables and Water Stations
+                        if (cleaned.startsWith("Table", ignoreCase = true) || cleaned.startsWith("Water Station", ignoreCase = true)) {
+                            cleaned = cleaned.replace(Regex("\\s?\\d+$"), "")
+                        }
                         cleaned
                     }
                     
