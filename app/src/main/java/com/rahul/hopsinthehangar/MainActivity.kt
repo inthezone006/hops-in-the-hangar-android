@@ -1440,19 +1440,7 @@ fun EntertainmentScreen(schedule: List<ScheduleItem>) {
         ) {
             Column(modifier = Modifier.padding(8.dp)) {
                 ListItem(
-                    headlineContent = { Text("Jane Doe", fontWeight = FontWeight.Bold) },
-                    supportingContent = { Text("Entertainment Host") },
-                    overlineContent = { Text("HOST", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall) },
-                    leadingContent = { 
-                        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), modifier = Modifier.size(40.dp)) {
-                            Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.Mic, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)) }
-                        }
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
-                ListItem(
-                    headlineContent = { Text("DJ Mixmaster", fontWeight = FontWeight.Bold) },
+                    headlineContent = { Text("DJ Ron Perry", fontWeight = FontWeight.Bold) },
                     supportingContent = { Text("Live Music DJ") },
                     overlineContent = { Text("MUSIC", color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.labelSmall) },
                     leadingContent = { 
@@ -1464,7 +1452,7 @@ fun EntertainmentScreen(schedule: List<ScheduleItem>) {
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
                 ListItem(
-                    headlineContent = { Text("John Smith", fontWeight = FontWeight.Bold) },
+                    headlineContent = { Text("Jennifer Kauffman", fontWeight = FontWeight.Bold) },
                     supportingContent = { Text("National Anthem Singer") },
                     overlineContent = { Text("ANTHEM", color = Color.Red, style = MaterialTheme.typography.labelSmall) },
                     leadingContent = { 
