@@ -1,23 +1,9 @@
 {
   "sponsors": [
-    {
-      "name": "City of Middletown & MWO",
-      "level": "Top Flight",
-      "description": "Top Flight Airshow Sponsor",
-      "links": [
-        { "label": "City of Middletown", "url": "https://www.cityofmiddletown.org" },
-        { "label": "MWO (Middletown Regional Airport)", "url": "https://flymwo.com" }
-      ]
-    },
-    {
-      "name": "Start Skydiving & Team Fastrax",
-      "level": "First Class",
-      "description": "First Class Sponsor",
-      "links": [
-        { "label": "Start Skydiving", "url": "https://startskydiving.com" },
-        { "label": "Team Fastrax", "url": "https://teamfastrax.com" }
-      ]
-    },
+    { "name": "City of Middletown", "level": "Top Flight", "description": "Top Flight Airshow Sponsor", "website": "https://www.cityofmiddletown.org"},
+    { "name": "MWO", "level": "Top Flight", "description": "Top Flight Airshow Sponsor", "website": "https://flymwo.com"},
+    {"name": "Start Skydiving", "level": "First Class", "description": "First Class Sponsor", "website": "https://startskydiving.com"},
+    {"name": "Team Fastrax", "level": "First Class", "description": "First Class Sponsor", "website": "https://teamfastrax.com"},
     { "name": "Safe Skies Aviation, LLC", "level": "Business Class", "description": "Business Class Sponsor", "website": "https://safeskiesaviation.com" },
     { "name": "Balloon Dog Events", "level": "Business Class", "description": "Business Class Sponsor", "website": "https://www.balloondogevents.com" },
     { "name": "Thread Headz", "level": "Business Class", "description": "Business Class Sponsor", "website": "https://threadheadzz.com/home/comingsoon" },
@@ -36,8 +22,10 @@
     { "name": "Big Daddy Dumpsters", "level": "Passport", "description": "Passport Sponsor", "website": "https://bigdaddydumpsters.com" },
     { "name": "Miami Valley Propane", "level": "Passport", "description": "Passport Sponsor", "website": "https://mvpropane.com" },
     { "name": "Phillips Tube Group", "level": "Passport", "description": "Passport Sponsor", "website": "https://phillipstube.com" },
-    { "name": "Kara Goheen Friends & Furball", "level": "Passport", "description": "Passport Sponsor", "website": "https://furballmiddletown.com" },
-    { "name": "Affordable Dentures & Implants", "level": "Passport", "description": "Passport Sponsor", "website": "https://www.affordabledentures.com/" },
+    { "name": "Kara Goheen Friends", "level": "Passport", "description": "Passport Sponsor", "website": "https://furballmiddletown.com" },
+    { "name": "Furball", "level": "Passport", "description": "Passport Sponsor", "website": "https://furballmiddletown.com" },
+    { "name": "Affordable Dentures", "level": "Passport", "description": "Passport Sponsor", "website": "https://www.affordabledentures.com/" },
+    { "name": "Implants", "level": "Passport", "description": "Passport Sponsor", "website": "https://www.affordabledentures.com/" },
     { "name": "Veracruz Mexican Restaurant", "level": "Passport", "description": "Passport Sponsor", "website": "https://www.facebook.com/veracruzmiddletown/" },
     { "name": "Renewal by Andersen", "level": "Passport", "description": "Passport Sponsor", "website": "https://www.renewalbyandersen.com/" },
     { "name": "New Ales Brewing", "level": "Brewery", "description": "Sponsoring Brewery", "website": "https://www.newalesbrewing.com", "mapId": "New Ales" },
@@ -47,7 +35,7 @@
   "vendors": [
     {
       "name": "Hamburger Wagon",
-      "category": "Food Vendor",
+      "category": "Food Truck",
       "description": "Miamisburg, OH",
       "email": "playmiamisburg@cityofmiamisburg.com",
       "phone": "937-866-8999",
@@ -56,7 +44,7 @@
     },
     {
       "name": "Mama Bear's Mac",
-      "category": "Food Vendor",
+      "category": "Food Truck",
       "description": "West Chester, OH",
       "email": "info@mamabearsmac.com",
       "phone": "513-349-4612",
@@ -65,7 +53,7 @@
     },
     {
       "name": "Little Chef Medy",
-      "category": "Food Vendor",
+      "category": "Food Truck",
       "description": "Cincinnati, OH",
       "email": "littlechefmedy@littlechefmedy.com",
       "phone": "513-802-2580",
@@ -74,7 +62,7 @@
     },
     {
       "name": "Schmidt's Sausage Truck",
-      "category": "Food Vendor",
+      "category": "Food Truck",
       "description": "Columbus, OH",
       "email": "info@schmidthaus.com",
       "phone": "614-444-6808",
@@ -83,7 +71,7 @@
     },
     {
       "name": "Graeter's",
-      "category": "Dessert / Ice Cream",
+      "category": "Food Truck",
       "description": "Cincinnati & Dayton, OH",
       "email": "customercare@graeters.com",
       "phone": "800-721-3323",
@@ -92,7 +80,7 @@
     },
     {
       "name": "El Diablo Grill",
-      "category": "Food Vendor",
+      "category": "Food Truck",
       "description": "Dayton, OH",
       "email": "info@eldiablosgrill.com",
       "phone": "937-555-0199",
@@ -101,7 +89,7 @@
     },
     {
       "name": "Salty Z Pretzels",
-      "category": "Food Vendor",
+      "category": "Food Truck",
       "description": "Ohio Mobile Food Trailer",
       "email": "office@mvdsa.org",
       "phone": "937-576-0779",
@@ -110,7 +98,7 @@
     },
     {
       "name": "Fatto A Mano",
-      "category": "Food Vendor",
+      "category": "Food Truck",
       "description": "Cincinnati, OH",
       "email": "info@elegantbitecatering.com",
       "phone": "513-555-0144",
@@ -118,8 +106,8 @@
       "mapId": "Fatto A Mano Wood Fired Pizza"
     },
     {
-      "name": "Schiawones",
-      "category": "Food Vendor",
+      "name": "Schiavones",
+      "category": "Food Truck",
       "description": "Middletown / Southwest, OH",
       "email": "info@schiawones.com",
       "phone": "513-555-0188",
@@ -162,13 +150,6 @@
       "mapId": "High Grain Brewing"
     },
     {
-      "name": "Astra Brewing Co.",
-      "category": "Brewery",
-      "description": "Cincinnati, OH",
-      "website": "https://astrabrewing.com/",
-      "mapId": "Astra Brewing"
-    },
-    {
       "name": "Municipal Brew Works",
       "category": "Brewery",
       "description": "Hamilton, OH",
@@ -181,13 +162,6 @@
       "description": "National Association",
       "website": "https://www.brewersassociation.org/",
       "mapId": "Brewer's Association"
-    },
-    {
-      "name": "Streetside Brewery",
-      "category": "Brewery",
-      "description": "Cincinnati, OH",
-      "website": "https://streetsidebrewery.com",
-      "mapId": "Street Side"
     },
     {
       "name": "MadTree Brewing Company",
@@ -232,13 +206,6 @@
       "mapId": "Stevens Point Brewery"
     },
     {
-      "name": "Dafuque Beer Company",
-      "category": "Brewery",
-      "description": "Local Favorite",
-      "website": "https://dafuquebeer.com",
-      "mapId": "DaFuque Beer"
-    },
-    {
       "name": "Happenstance Brewing Company",
       "category": "Brewery",
       "description": "Cincinnati, OH",
@@ -278,7 +245,8 @@
     { "time": "4:00 PM", "event": "VIP Early Access" },
     { "time": "4:00 PM - 6:00 PM", "event": "Entrance Gate Live Performance" },
     { "time": "5:00 PM", "event": "General Admission Starts" },
-    { "time": "6:00 PM", "event": "Opening Jump" },
+    { "time": "6:00 PM", "event": "Opening Jump & National Anthem" },
+    { "time": "6:15 PM", "event": "Flag Jump – Nicole Condrey of Team Fastrax" },
     { "time": "9:30 PM", "event": "Event End" }
   ],
   "info": {
@@ -301,7 +269,7 @@
     },
     {
       "question": "Prohibited items at the event",
-      "answer": "-No outside food or drink\n\n• No weapons or firearms of any kind (regardless of concealed carry permit)\n\n• No umbrellas or tents as a participant\n\n• No drugs and/or drug paraphernalia\n\n• No pets\n\n• No balloons"
+      "answer": "• No outside food or drink\n\n• No weapons or firearms of any kind (regardless of concealed carry permit)\n\n• No umbrellas or tents as a participant\n\n• No drugs and/or drug paraphernalia\n\n• No pets\n\n• No balloons"
     },
     {
       "question": "What is the appropriate ID required for entry?",
