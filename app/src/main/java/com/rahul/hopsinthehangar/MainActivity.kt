@@ -1601,7 +1601,7 @@ fun EntertainmentScreen(schedule: List<ScheduleItem>) {
             Column(modifier = Modifier.padding(8.dp)) {
                 val performers = listOf(
                     "Wild Bill" to "Steven Hanshew (Announcer)",
-                    "Team Fastrax" to "Nicole Condrey Flag Jump",
+                    "Team Fastrax" to "Nicole Condrey - Flag Jump",
                     "Brett Hunter" to "Aerobatic Performance",
                     "Nick Coleman" to "Aerobatic Performance",
                     "Bob Richards" to "Aerobatic Performance",
