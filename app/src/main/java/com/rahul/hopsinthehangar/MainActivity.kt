@@ -969,12 +969,12 @@ fun HomeScreen(eventData: EventData?) {
                                     border = BorderStroke(3.dp, Color.Black)
                                 ) {
                                     AsyncImage(
-                                        model = R.mipmap.ic_launcher_foreground,
+                                        model = "file:///android_asset/main_icon.png",
                                         contentDescription = "App Logo",
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .clip(RoundedCornerShape(8.dp)),
-                                        contentScale = ContentScale.FillBounds
+                                        contentScale = ContentScale.Crop
                                     )
                                 }
                             }
