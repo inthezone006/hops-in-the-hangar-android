@@ -426,7 +426,7 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                             )
                         )
                         layout(constraints.maxWidth, placeable.height) {
-                            placeable.place(-bleedPx, 0)
+                            placeable.place(-bleedPx, -bleedPx)
                         }
                     },
                 border = BorderStroke(3.dp, MaterialTheme.colorScheme.outline),
@@ -533,7 +533,7 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                                 maxWidth = targetWidth
                             )
                         )
-                        layout(constraints.maxWidth, placeable.height) {
+                        layout(constraints.maxWidth, placeable.height - bleedPx) {
                             placeable.place(-bleedPx, 0)
                         }
                     },
