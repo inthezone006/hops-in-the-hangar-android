@@ -532,10 +532,12 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                         val interactionSource = remember { MutableInteractionSource() }
                         val isPressed by interactionSource.collectIsPressedAsState()
 
-                        val shadowOffsetX = if (isPressed) 1.dp else 3.dp
-                        val shadowOffsetY = if (isPressed) 1.dp else 3.dp
-                        val translationX = if (isPressed) 2.dp else 0.dp
-                        val translationY = if (isPressed) 2.dp else 0.dp
+                        val isPressedOrSelected = selected || isPressed
+
+                        val shadowOffsetX = if (isPressedOrSelected) 1.dp else 3.dp
+                        val shadowOffsetY = if (isPressedOrSelected) 1.dp else 3.dp
+                        val translationX = if (isPressedOrSelected) 2.dp else 0.dp
+                        val translationY = if (isPressedOrSelected) 2.dp else 0.dp
 
                         Box(
                             modifier = Modifier
@@ -556,9 +558,11 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                                         indication = null
                                     ) {
                                         navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                            popUpTo(navController.graph.startDestinationId) {
+                                                saveState = false
+                                            }
                                             launchSingleTop = true
-                                            restoreState = true
+                                            restoreState = false
                                         }
                                     },
                                 shape = RoundedCornerShape(6.dp),
@@ -813,6 +817,7 @@ fun NeoAccordion(
                         color = Color.Black,
                         modifier = Modifier.weight(1f)
                     )
+                    Spacer(modifier = Modifier.width(16.dp))
                     Surface(
                         shape = RoundedCornerShape(0.dp),
                         color = Color.White,
