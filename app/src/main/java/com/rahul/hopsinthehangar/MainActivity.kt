@@ -85,7 +85,18 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.foundation.text.BasicTextField
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.toColorInt
 import kotlinx.coroutines.delay
+
+fun parseHexColor(hex: String?, defaultColor: Color = NeoWhite): Color {
+    if (hex.isNullOrBlank()) return defaultColor
+    return try {
+        val formattedHex = if (hex.startsWith("#")) hex else "#$hex"
+        Color(formattedHex.toColorInt())
+    } catch (e: Exception) {
+        defaultColor
+    }
+}
 
 fun getResourceName(name: String?): String {
     if (name == null) return ""
@@ -637,11 +648,13 @@ data class SponsorItem(
     val name: String,
     val level: String,
     val description: String,
+    val about: String? = null,
     val website: String? = null,
     val links: List<SponsorLink>? = null,
     val mapId: String? = null,
     val email: String? = null,
-    val phone: String? = null
+    val phone: String? = null,
+    val background: String? = null
 )
 
 @Serializable
@@ -649,10 +662,12 @@ data class VendorItem(
     val name: String,
     val category: String,
     val description: String,
+    val about: String? = null,
     val email: String? = null,
     val phone: String? = null,
     val website: String? = null,
-    val mapId: String? = null
+    val mapId: String? = null,
+    val background: String? = null
 )
 
 @Serializable
@@ -1371,7 +1386,7 @@ fun SponsorsScreen(
                                     .padding(start = (index * 24).dp)
                                     .size(64.dp),
                                 shape = RoundedCornerShape(8.dp),
-                                color = NeoWhite,
+                                color = parseHexColor(sponsor.background),
                                 border = BorderStroke(2.dp, Color.Black)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
@@ -1434,7 +1449,7 @@ fun SponsorsScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         LinkifyText(
-                            text = sponsor.description,
+                            text = sponsor.about?.ifBlank { sponsor.description } ?: sponsor.description,
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Black.copy(alpha = 0.9f)
                         )
@@ -1708,7 +1723,7 @@ fun SponsorCard(
                                         .padding(start = (index * 24).dp)
                                         .size(56.dp),
                                     shape = RoundedCornerShape(8.dp),
-                                    color = NeoWhite,
+                                    color = parseHexColor(sponsor.background),
                                     border = BorderStroke(2.dp, Color.Black)
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
@@ -1860,7 +1875,7 @@ fun VendorsScreen(
                         Surface(
                             modifier = Modifier.matchParentSize(),
                             shape = RoundedCornerShape(8.dp),
-                            color = NeoWhite,
+                            color = parseHexColor(vendor.background),
                             border = BorderStroke(2.dp, Color.Black)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -1927,7 +1942,7 @@ fun VendorsScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         LinkifyText(
-                            text = vendor.description,
+                            text = vendor.about?.ifBlank { vendor.description } ?: vendor.description,
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Black.copy(alpha = 0.9f)
                         )
@@ -2100,7 +2115,7 @@ fun VendorsScreen(
                             Surface(
                                 modifier = Modifier.size(48.dp),
                                 shape = RoundedCornerShape(8.dp),
-                                color = NeoWhite,
+                                color = parseHexColor(vendor.background),
                                 border = BorderStroke(2.dp, Color.Black)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {

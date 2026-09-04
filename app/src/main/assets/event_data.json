@@ -1,37 +1,276 @@
 {
   "sponsors": [
-    { "name": "City of Middletown", "level": "Top Flight", "description": "Top Flight Airshow Sponsor", "email": "info@cityofmiddletown.org", "phone": "513-425-7800", "website": "https://www.cityofmiddletown.org"},
-    { "name": "MWO", "level": "Top Flight", "description": "Top Flight Airshow Sponsor", "email": "info@flymwo.com", "phone": "513-422-6533", "website": "https://flymwo.com"},
-    {"name": "Start Skydiving", "level": "First Class", "description": "First Class Sponsor", "email": "jump@startskydiving.com", "phone": "513-422-5867", "website": "https://startskydiving.com"},
-    {"name": "Team Fastrax", "level": "First Class", "description": "First Class Sponsor", "email": "info@teamfastrax.com", "phone": "513-423-5867", "website": "https://teamfastrax.com"},
-    { "name": "Safe Skies Aviation, LLC", "level": "Business Class", "description": "Business Class Sponsor", "email": "info@safeskiesaviation.com", "phone": "513-555-0101", "website": "https://safeskiesaviation.com" },
-    { "name": "Balloon Dog Events", "level": "Business Class", "description": "Business Class Sponsor", "email": "info@balloondogevents.com", "phone": "513-555-0102", "website": "https://www.balloondogevents.com" },
-    { "name": "Thread Headz", "level": "Business Class", "description": "Business Class Sponsor", "email": "info@threadheadzz.com", "phone": "513-555-0103", "website": "https://threadheadzz.com/home/comingsoon" },
-    { "name": "Lewis Horticultural Service", "level": "Business Class", "description": "Business Class Sponsor", "email": "info@lewishorticultural.com", "phone": "513-555-0104", "website": "http://lewishorticultural.com" },
-    { "name": "BB Tech Services", "level": "Business Class", "description": "Business Class Sponsor", "email": "info@bbtechservices.com", "phone": "513-555-0105", "website": "https://bbtechservices.com" },
-    { "name": "Middletown Community Foundation", "level": "Coach Class", "description": "Coach Class Sponsor", "email": "info@mcfoundation.org", "phone": "513-422-7800", "website": "https://mcfoundation.org" },
-    { "name": "Askren Air Balloon Team", "level": "Business Class", "description": "Business Class Sponsor", "email": "info@askrenballoonteam.com", "phone": "513-555-0106", "website": "https://askrenballoonteam.com", "mapId": "Askren Air Balloon Team" },
-    { "name": "RH Seals", "level": "Coach Class", "description": "Coach Class Sponsor", "email": "info@rhseals.com", "phone": "513-555-0107", "website": "https://www.rhseals.com/" },
-    { "name": "Cook Howard Law Ltd.", "level": "Coach Class", "description": "Coach Class Sponsor", "email": "info@cookhowardlaw.com", "phone": "513-555-0108", "website": "https://www.cookhowardlaw.com/" },
-    { "name": "Hanke Optometry", "level": "Coach Class", "description": "Coach Class Sponsor", "email": "info@hankeoptometry.com", "phone": "513-555-0109", "website": "https://www.hankeoptometry.com/" },
-    { "name": "Eiford Dental", "level": "Coach Class", "description": "Coach Class Sponsor", "email": "info@eiforddental.com", "phone": "513-555-0110", "website": "https://www.hankeoptometry.com/" },
-    { "name": "Xponex", "level": "Coach Class", "description": "Coach Class Sponsor", "email": "info@xponex.com", "phone": "513-555-0111", "website": "https://www.xponex.com/" },
-    { "name": "Hartzell Propeller", "level": "Coach Class", "description": "Coach Class Sponsor", "email": "info@hartzellprop.com", "phone": "937-778-5600", "website": "https://hartzellprop.com" },
-    { "name": "Valley Central Bank", "level": "Passport", "description": "Passport Sponsor", "email": "info@valleycentral.org", "phone": "513-555-0112", "website": "https://valleycentral.org" },
-    { "name": "Midwest Air Recovery", "level": "Passport", "description": "Passport Sponsor", "email": "info@midwestairrecovery.com", "phone": "513-555-0113", "website": "http://midwestairrecovery.com" },
-    { "name": "Big Daddy Dumpsters", "level": "Passport", "description": "Passport Sponsor", "email": "info@bigdaddydumpsters.com", "phone": "513-555-0114", "website": "https://bigdaddydumpsters.com" },
-    { "name": "Miami Valley Propane", "level": "Passport", "description": "Passport Sponsor", "email": "info@mvpropane.com", "phone": "937-555-0115", "website": "https://mvpropane.com" },
-    { "name": "Phillips Tube Group", "level": "Passport", "description": "Passport Sponsor", "email": "info@phillipstube.com", "phone": "513-555-0116", "website": "https://phillipstube.com" },
-    { "name": "Kara Goheen Friends & Furball", "level": "Passport", "description": "Passport Sponsor", "email": "info@furballmiddletown.com", "phone": "513-555-0117", "website": "https://furballmiddletown.com" },
-    { "name": "Affordable Dentures & Implants", "level": "Passport", "description": "Passport Sponsor", "email": "info@affordabledentures.com", "phone": "800-555-0118", "website": "https://www.affordabledentures.com/" },
-    { "name": "Veracruz Mexican Restaurant", "level": "Passport", "description": "Passport Sponsor", "email": "info@veracruzmiddletown.com", "phone": "513-555-0119", "website": "https://www.facebook.com/veracruzmiddletown/" },
-    { "name": "Renewal by Andersen", "level": "Passport", "description": "Passport Sponsor", "email": "info@renewalbyandersen.com", "phone": "800-555-0120", "website": "https://www.renewalbyandersen.com/" },
-    { "name": "New Ales Brewing", "level": "Brewery", "description": "Sponsoring Brewery", "email": "info@newalesbrewing.com", "phone": "513-555-0121", "website": "https://www.newalesbrewing.com", "mapId": "New Ales" },
-    { "name": "Heavier Than Air Brewing Co.", "level": "Brewery", "description": "Sponsoring Brewery", "email": "info@heavierthanairbrewing.com", "phone": "513-555-0122", "website": "https://heavierthanairbrewing.com/", "mapId": "Heavier than Air" },
-    { "name": "Loose Ends Brewing Company", "level": "Brewery", "description": "Sponsoring Brewery", "email": "info@looseendsbrewing.com", "phone": "513-555-0123", "website": "https://looseendsbrewing.com/", "mapId": "Loose Ends" }
+    {
+      "about": "Official municipal partner and top-tier sponsor supporting community development and the local aviation scene.",
+      "name": "City of Middletown",
+      "level": "Top Flight",
+      "description": "Top Flight Airshow Sponsor",
+      "email": "info@cityofmiddletown.org",
+      "phone": "513-425-7800",
+      "website": "https://www.cityofmiddletown.org"
+    },
+    {
+      "about": "Premier aviation partner and major sponsor providing vital support for the region's flight operations and events.",
+      "name": "MWO",
+      "level": "Top Flight",
+      "description": "Top Flight Airshow Sponsor",
+      "email": "info@flymwo.com",
+      "phone": "513-422-6533",
+      "website": "https://flymwo.com"
+    },
+    {
+      "about": "Renowned skydiving center offering world-class training, tandem jumps, and aviation excitement right out of Middletown.",
+      "name": "Start Skydiving",
+      "level": "First Class",
+      "description": "First Class Sponsor",
+      "email": "jump@startskydiving.com",
+      "phone": "513-422-5867",
+      "website": "https://startskydiving.com"
+    },
+    {
+      "about": "Professional elite parachute demonstration team delivering breathtaking aerial performances and flag jumps.",
+      "name": "Team Fastrax",
+      "level": "First Class",
+      "description": "First Class Sponsor",
+      "email": "info@teamfastrax.com",
+      "phone": "513-423-5867",
+      "website": "https://teamfastrax.com"
+    },
+    {
+      "about": "Dedicated aviation service provider ensuring safe skies, aircraft care, and reliable flight support.",
+      "name": "Safe Skies Aviation, LLC",
+      "level": "Business Class",
+      "description": "Business Class Sponsor",
+      "email": "info@safeskiesaviation.com",
+      "phone": "513-555-0101",
+      "website": "https://safeskiesaviation.com"
+    },
+    {
+      "about": "Creative event planning and entertainment group specializing in memorable celebrations and engaging gatherings.",
+      "name": "Balloon Dog Events",
+      "level": "Business Class",
+      "description": "Business Class Sponsor",
+      "email": "info@balloondogevents.com",
+      "phone": "513-555-0102",
+      "website": "https://www.balloondogevents.com"
+    },
+    {
+      "about": "Custom apparel and merchandise brand delivering stylish threads and personalized clothing solutions.",
+      "name": "Thread Headz",
+      "level": "Business Class",
+      "description": "Business Class Sponsor",
+      "email": "info@threadheadzz.com",
+      "phone": "513-555-0103",
+      "website": "https://threadheadzz.com/home/comingsoon"
+    },
+    {
+      "about": "Professional landscaping and horticultural service provider maintaining beautiful outdoor environments.",
+      "name": "Lewis Horticultural Service",
+      "level": "Business Class",
+      "description": "Business Class Sponsor",
+      "email": "info@lewishorticultural.com",
+      "phone": "513-555-0104",
+      "website": "http://lewishorticultural.com"
+    },
+    {
+      "about": "Reliable technology consulting and IT support partner keeping businesses running efficiently.",
+      "name": "BB Tech Services",
+      "level": "Business Class",
+      "description": "Business Class Sponsor",
+      "email": "info@bbtechservices.com",
+      "phone": "513-555-0105",
+      "website": "https://bbtechservices.com"
+    },
+    {
+      "about": "Philanthropic community pillar investing in local non-profits, grants, and initiatives to enrich Middletown.",
+      "name": "Middletown Community Foundation",
+      "level": "Coach Class",
+      "description": "Coach Class Sponsor",
+      "email": "info@mcfoundation.org",
+      "phone": "513-422-7800",
+      "website": "https://mcfoundation.org"
+    },
+    {
+      "about": "Exciting hot air balloon exhibition team bringing color, wonder, and loft to aviation festivals.",
+      "name": "Askren Air Balloon Team",
+      "level": "Business Class",
+      "description": "Business Class Sponsor",
+      "email": "info@askrenballoonteam.com",
+      "phone": "513-555-0106",
+      "website": "https://askrenballoonteam.com",
+      "mapId": "Askren Air Balloon Team"
+    },
+    {
+      "about": "Industrial sealing and gasket specialist providing top-grade sealing solutions for diverse mechanical needs.",
+      "name": "RH Seals",
+      "level": "Coach Class",
+      "description": "Coach Class Sponsor",
+      "email": "info@rhseals.com",
+      "phone": "513-555-0107",
+      "website": "https://www.rhseals.com/"
+    },
+    {
+      "about": "Trusted local legal practice offering expert counsel and advocacy for individuals and businesses.",
+      "name": "Cook Howard Law Ltd.",
+      "level": "Coach Class",
+      "description": "Coach Class Sponsor",
+      "email": "info@cookhowardlaw.com",
+      "phone": "513-555-0108",
+      "website": "https://www.cookhowardlaw.com/"
+    },
+    {
+      "about": "Comprehensive eye care practice dedicated to patient vision health, modern diagnostics, and eyewear.",
+      "name": "Hanke Optometry",
+      "level": "Coach Class",
+      "description": "Coach Class Sponsor",
+      "email": "info@hankeoptometry.com",
+      "phone": "513-555-0109",
+      "website": "https://www.hankeoptometry.com/",
+      "background": "#E7E7E7"
+    },
+    {
+      "about": "Community dental care clinic providing friendly family dentistry and restorative treatments.",
+      "name": "Eiford Dental",
+      "level": "Coach Class",
+      "description": "Coach Class Sponsor",
+      "email": "info@eiforddental.com",
+      "phone": "513-555-0110",
+      "website": "https://www.hankeoptometry.com/",
+      "background": "#DDD8CC"
+    },
+    {
+      "about": "Event marketing and experiential exhibition partner connecting brands with target audiences.",
+      "name": "Xponex",
+      "level": "Coach Class",
+      "description": "Coach Class Sponsor",
+      "email": "info@xponex.com",
+      "phone": "513-555-0111",
+      "website": "https://www.xponex.com/"
+    },
+    {
+      "about": "World-leading aircraft propeller manufacturer providing cutting-edge aviation propulsion technology.",
+      "name": "Hartzell Propeller",
+      "level": "Coach Class",
+      "description": "Coach Class Sponsor",
+      "email": "info@hartzellprop.com",
+      "phone": "937-778-5600",
+      "website": "https://hartzellprop.com"
+    },
+    {
+      "about": "Community-focused financial institution offering personalized banking solutions and local support.",
+      "name": "Valley Central Bank",
+      "level": "Passport",
+      "description": "Passport Sponsor",
+      "email": "info@valleycentral.org",
+      "phone": "513-555-0112",
+      "website": "https://valleycentral.org"
+    },
+    {
+      "about": "Specialized aviation recovery and salvage service handling aircraft transport and logistics.",
+      "name": "Midwest Air Recovery",
+      "level": "Passport",
+      "description": "Passport Sponsor",
+      "email": "info@midwestairrecovery.com",
+      "phone": "513-555-0113",
+      "website": "http://midwestairrecovery.com"
+    },
+    {
+      "about": "Reliable waste management and dumpster rental service catering to residential and commercial projects.",
+      "name": "Big Daddy Dumpsters",
+      "level": "Passport",
+      "description": "Passport Sponsor",
+      "email": "info@bigdaddydumpsters.com",
+      "phone": "513-555-0114",
+      "website": "https://bigdaddydumpsters.com"
+    },
+    {
+      "about": "Dependable local propane supplier providing clean energy solutions for homes and businesses.",
+      "name": "Miami Valley Propane",
+      "level": "Passport",
+      "description": "Passport Sponsor",
+      "email": "info@mvpropane.com",
+      "phone": "937-555-0115",
+      "website": "https://mvpropane.com"
+    },
+    {
+      "about": "Innovative manufacturer of high-quality steel tubing products serving industrial applications.",
+      "name": "Phillips Tube Group",
+      "level": "Passport",
+      "description": "Passport Sponsor",
+      "email": "info@phillipstube.com",
+      "phone": "513-555-0116",
+      "website": "https://phillipstube.com"
+    },
+    {
+      "about": "Animal welfare advocate and community group dedicated to supporting local pets and furry friends.",
+      "name": "Kara Goheen Friends & Furball",
+      "level": "Passport",
+      "description": "Passport Sponsor",
+      "email": "info@furballmiddletown.com",
+      "phone": "513-555-0117",
+      "website": "https://furballmiddletown.com"
+    },
+    {
+      "about": "Nationwide denture and implant specialist helping patients restore their smiles with confidence.",
+      "name": "Affordable Dentures & Implants",
+      "level": "Passport",
+      "description": "Passport Sponsor",
+      "email": "info@affordabledentures.com",
+      "phone": "800-555-0118",
+      "website": "https://www.affordabledentures.com/"
+    },
+    {
+      "about": "Local eatery serving authentic Mexican dishes, vibrant flavors, and welcoming hospitality in Middletown.",
+      "name": "Veracruz Mexican Restaurant",
+      "level": "Passport",
+      "description": "Passport Sponsor",
+      "email": "info@veracruzmiddletown.com",
+      "phone": "513-555-0119",
+      "website": "https://www.facebook.com/veracruzmiddletown/"
+    },
+    {
+      "about": "Premier window and patio door replacement specialist offering custom-crafted home upgrades.",
+      "name": "Renewal by Andersen",
+      "level": "Passport",
+      "description": "Passport Sponsor",
+      "email": "info@renewalbyandersen.com",
+      "phone": "800-555-0120",
+      "website": "https://www.renewalbyandersen.com/"
+    },
+    {
+      "about": "Innovative craft brewery crafting unique artisanal beers and building community spirit.",
+      "name": "New Ales Brewing",
+      "level": "Brewery",
+      "description": "Sponsoring Brewery",
+      "email": "info@newalesbrewing.com",
+      "phone": "513-555-0121",
+      "website": "https://www.newalesbrewing.com",
+      "mapId": "New Ales"
+    },
+    {
+      "about": "Aviation-themed craft brewery celebrating flight history with exceptional small-batch beers.",
+      "name": "Heavier Than Air Brewing Co.",
+      "level": "Brewery",
+      "description": "Sponsoring Brewery",
+      "email": "info@heavierthanairbrewing.com",
+      "phone": "513-555-0122",
+      "website": "https://heavierthanairbrewing.com/",
+      "mapId": "Heavier than Air"
+    },
+    {
+      "about": "Family-friendly local brewery and kitchen known for welcoming vibes and quality craft brews.",
+      "name": "Loose Ends Brewing Company",
+      "level": "Brewery",
+      "description": "Sponsoring Brewery",
+      "email": "info@looseendsbrewing.com",
+      "phone": "513-555-0123",
+      "website": "https://looseendsbrewing.com/",
+      "mapId": "Loose Ends"
+    }
   ],
   "vendors": [
     {
+      "about": "Iconic Ohio mobile food stand famous for serving delicious, historic sliders since 1924.",
       "name": "Hamburger Wagon",
       "category": "Food Truck",
       "description": "Miamisburg, OH",
@@ -41,6 +280,7 @@
       "mapId": "Hamburger Wagon"
     },
     {
+      "about": "Gourmet food truck crafting indulgent, comforting macaroni and cheese creations.",
       "name": "Mama Bear's Mac",
       "category": "Food Truck",
       "description": "West Chester, OH",
@@ -50,6 +290,7 @@
       "mapId": "Mama Bear's Mac"
     },
     {
+      "about": "Unique food truck offering flavorful Mediterranean-inspired culinary delights.",
       "name": "Little Chef Medy",
       "category": "Food Truck",
       "description": "Cincinnati, OH",
@@ -59,6 +300,7 @@
       "mapId": "Little Chef Medy"
     },
     {
+      "about": "Legendary Columbus food truck serving authentic German sausages and classic culinary favorites.",
       "name": "Schmidt's Sausage Truck",
       "category": "Food Truck",
       "description": "Columbus, OH",
@@ -68,6 +310,7 @@
       "mapId": "Schmidt's Sausage Truck"
     },
     {
+      "about": "Beloved local ice cream institution famous for rich, French pot ice cream and chocolate chip chunks.",
       "name": "Graeter's",
       "category": "Food Truck",
       "description": "Cincinnati & Dayton, OH",
@@ -77,15 +320,18 @@
       "mapId": "Graeters "
     },
     {
+      "about": "Savory food truck grilling up bold Tex-Mex flavors and mouthwatering street tacos.",
       "name": "El Diablo Grill",
       "category": "Food Truck",
       "description": "Dayton, OH",
       "email": "info@eldiablosgrill.com",
       "phone": "937-555-0199",
       "website": "https://streetfoodfinder.com/ElDiabloGrill",
-      "mapId": "El Diablo Grill"
+      "mapId": "El Diablo Grill",
+      "background": "#000000"
     },
     {
+      "about": "Mobile pretzel trailer serving warm, giant artisan soft pretzels with delicious dipping sauces.",
       "name": "Salty Z Pretzels",
       "category": "Food Truck",
       "description": "Ohio Mobile Food Trailer",
@@ -95,24 +341,29 @@
       "mapId": "Meijer Pretzel Station"
     },
     {
+      "about": "Mobile wood-fired pizzeria baking authentic, artisanal Italian pizzas on the go.",
       "name": "Fatto A Mano",
       "category": "Food Truck",
       "description": "Cincinnati, OH",
       "email": "info@elegantbitecatering.com",
       "phone": "513-555-0144",
       "website": "https://streetfoodfinder.com/FattoaManoOhio",
-      "mapId": "Fatto A Mano Wood Fired Pizza"
+      "mapId": "Fatto A Mano Wood Fired Pizza",
+      "background": "#000000"
     },
     {
+      "about": "Local favorite food truck bringing comforting Italian specialties and classic favorites to southwest Ohio.",
       "name": "Schiavones",
       "category": "Food Truck",
       "description": "Middletown / Southwest, OH",
       "email": "info@schiawones.com",
       "phone": "513-555-0188",
       "website": "https://www.schiawones.com",
-      "mapId": "Schiavone's Italian"
+      "mapId": "Schiavone's Italian",
+      "background": "#959691"
     },
     {
+      "about": "Mason-based craft brewery producing a diverse lineup of innovative and refreshing beers.",
       "name": "BC's Brewing Company",
       "category": "Brewery",
       "description": "Mason, OH",
@@ -120,6 +371,7 @@
       "mapId": "BC's Brewery Company"
     },
     {
+      "about": "Prominent Dayton craft brewery inspired by aviation history, offering creative beers and taprooms.",
       "name": "Warped Wing Brewing Co.",
       "category": "Brewery",
       "description": "Dayton, OH",
@@ -127,6 +379,7 @@
       "mapId": "Warped Wing"
     },
     {
+      "about": "Mind-bending craft brewery known for imaginative beers, eye-catching branding, and great taprooms.",
       "name": "Third Eye Brewing",
       "category": "Brewery",
       "description": "Sharonville, OH",
@@ -134,6 +387,7 @@
       "mapId": "Third Eye Brewing"
     },
     {
+      "about": "Fairborn craft brewery providing inviting spaces and a solid rotation of independent brews.",
       "name": "Depot Brewing Company",
       "category": "Brewery",
       "description": "Fairborn, OH",
@@ -141,6 +395,7 @@
       "mapId": "Depot Brewing"
     },
     {
+      "about": "Cincinnati craft brewery focused on sustainable brewing practices and grain-forward flavor profiles.",
       "name": "High Grain Brewing",
       "category": "Brewery",
       "description": "Cincinnati, OH",
@@ -148,6 +403,7 @@
       "mapId": "High Grain Brewing"
     },
     {
+      "about": "Hamilton's first modern craft brewery, bringing vibrant community gathering spaces and excellent beer.",
       "name": "Municipal Brew Works",
       "category": "Brewery",
       "description": "Hamilton, OH",
@@ -155,6 +411,7 @@
       "mapId": "Municipal Brew Works"
     },
     {
+      "about": "National trade association representing small and independent American craft brewers.",
       "name": "Brewer's Association",
       "category": "Brewery",
       "description": "National Association",
@@ -162,6 +419,7 @@
       "mapId": "Brewer's Association"
     },
     {
+      "about": "Acclaimed Cincinnati craft brewery dedicated to great beers, outdoor spaces, and community engagement.",
       "name": "MadTree Brewing Company",
       "category": "Brewery",
       "description": "Cincinnati, OH",
@@ -169,6 +427,7 @@
       "mapId": "MadTree Brewing Company"
     },
     {
+      "about": "Mason craft brewery focused on creating a balanced, welcoming space and exceptional beers for all.",
       "name": "Sonder Brewing",
       "category": "Brewery",
       "description": "Mason, OH",
@@ -176,6 +435,7 @@
       "mapId": "Sonder Brewing"
     },
     {
+      "about": "Dayton's craft beer pioneer offering a unique, edgy taproom experience and distinct brews.",
       "name": "Toxic Brew Company",
       "category": "Brewery",
       "description": "Dayton, OH",
@@ -183,6 +443,7 @@
       "mapId": "Toxic Brew Company"
     },
     {
+      "about": "Major beverage distributor connecting top breweries with retail partners across the region.",
       "name": "Heidelberg Distributing",
       "category": "Brewery",
       "description": "Distributor",
@@ -190,6 +451,7 @@
       "mapId": "Heidelberg"
     },
     {
+      "about": "Globally recognized craft brewer known for bold IPAs, sustainable initiatives, and energetic taprooms.",
       "name": "BrewDog Brewery",
       "category": "Brewery",
       "description": "Columbus, OH",
@@ -197,6 +459,7 @@
       "mapId": "BrewDog Brewery"
     },
     {
+      "about": "Historic Wisconsin brewery crafting time-honored traditional beers and refreshing beverages.",
       "name": "Stevens Point Brewery",
       "category": "Brewery",
       "description": "Stevens Point, WI",
@@ -204,6 +467,7 @@
       "mapId": "Stevens Point Brewery"
     },
     {
+      "about": "Cincinnati craft brewery delivering unexpected flavor combinations and creative artisanal beers.",
       "name": "Happenstance Brewing Company",
       "category": "Brewery",
       "description": "Cincinnati, OH",
@@ -211,6 +475,7 @@
       "mapId": "Happenstance Brewing"
     },
     {
+      "about": "Middletown's local craft brewery offering a cozy neighborhood taproom and community-focused beers.",
       "name": "Gravel Road Brewing Co.",
       "category": "Brewery",
       "description": "Middletown, OH",
@@ -218,6 +483,7 @@
       "mapId": "Gravel Road"
     },
     {
+      "about": "Historic German brewery renowned worldwide for its authentic pilsners and brewing heritage.",
       "name": "Bitburger Brewery",
       "category": "Brewery",
       "description": "Germany",
@@ -225,6 +491,7 @@
       "mapId": "Bitburger"
     },
     {
+      "about": "Cincinnati BBQ and craft brewery combining smoked meats with house-brewed beers.",
       "name": "Dead Low Brewing",
       "category": "Brewery",
       "description": "Cincinnati, OH",
@@ -232,6 +499,7 @@
       "mapId": "Dead Low"
     },
     {
+      "about": "Neighborhood-focused Cincinnati craft brewery crafting community-centric and approachable beers.",
       "name": "Brink Brewing Co.",
       "category": "Brewery",
       "description": "Cincinnati, OH",
@@ -240,20 +508,47 @@
     }
   ],
   "schedule": [
-    { "time": "4:00 PM", "event": "VIP Early Access" },
-    { "time": "4:00 PM - 6:00 PM", "event": "Entrance Gate Live Performance" },
-    { "time": "5:00 PM", "event": "General Admission Starts" },
-    { "time": "6:00 PM", "event": "Opening Jump & National Anthem" },
-    { "time": "6:15 PM", "event": "Flag Jump – Nicole Condrey of Team Fastrax" },
-    { "time": "9:30 PM", "event": "Event End" }
+    {
+      "time": "4:00 PM",
+      "event": "VIP Early Access"
+    },
+    {
+      "time": "4:00 PM - 6:00 PM",
+      "event": "Entrance Gate Live Performance"
+    },
+    {
+      "time": "5:00 PM",
+      "event": "General Admission Starts"
+    },
+    {
+      "time": "6:00 PM",
+      "event": "Opening Jump & National Anthem"
+    },
+    {
+      "time": "6:15 PM",
+      "event": "Flag Jump – Nicole Condrey of Team Fastrax"
+    },
+    {
+      "time": "9:30 PM",
+      "event": "Event End"
+    }
   ],
   "info": {
     "parking": "Free parking is available at the Middletown Regional Airport. Follow signs for 'Event Parking'. Shuttles will be available from designated lots.",
     "rules": "No outside food or beverage. Clear bags only. No smoking in the hangars. Chairs are allowed, but no umbrellas/tents/canopies shall be brought in. All attendees must be 21+ with a valid ID to consume alcohol.",
     "hotels": [
-      { "name": "Drury Inn", "link": "tel:8883241835" },
-      { "name": "Fairfield Inn", "link": "tel:5134245444" },
-      { "name": "Hampton Inn", "link": "tel:8556050317" }
+      {
+        "name": "Drury Inn",
+        "link": "tel:8883241835"
+      },
+      {
+        "name": "Fairfield Inn",
+        "link": "tel:5134245444"
+      },
+      {
+        "name": "Hampton Inn",
+        "link": "tel:8556050317"
+      }
     ]
   },
   "faq": [
