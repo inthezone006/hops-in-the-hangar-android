@@ -416,7 +416,8 @@
       "category": "Brewery",
       "description": "National Association",
       "website": "https://www.brewersassociation.org/",
-      "mapId": "Brewer's Association"
+      "mapId": "Brewer's Association",
+      "background": "#F3E3B0"
     },
     {
       "about": "Acclaimed Cincinnati craft brewery dedicated to great beers, outdoor spaces, and community engagement.",
@@ -531,6 +532,118 @@
     {
       "time": "9:30 PM",
       "event": "Event End"
+    }
+  ],
+  "groundEntertainment": [
+    {
+      "name": "DJ Ron Perry",
+      "role": "Live Music DJ",
+      "category": "MUSIC",
+      "socialPlatform": "Instagram",
+      "socialHandle": "@djronperry",
+      "socialUrl": "https://www.instagram.com/djronperry/",
+      "contactInfo": "rperry0208@hotmail.com"
+    },
+    {
+      "name": "Jennifer Kauffman",
+      "role": "National Anthem Singer",
+      "category": "ANTHEM",
+      "socialPlatform": "Instagram",
+      "socialHandle": "@der_kaufhaus",
+      "socialUrl": "https://www.instagram.com/der_kaufhaus/",
+      "contactInfo": ""
+    },
+    {
+      "name": "Steel Drum Dave",
+      "role": "Check In Entertainment",
+      "category": "CHECK IN",
+      "socialPlatform": "steeldrumdave",
+      "socialHandle": "Facebook",
+      "socialUrl": "https://www.facebook.com/steeldrumdave/",
+      "contactInfo": "steeldrumdave1@gmail.com"
+    }
+  ],
+  "performers": [
+    {
+      "name": "Wild Bill",
+      "role": "Steven Hanshew (Announcer)",
+      "category": "ANNOUNCER",
+      "socialPlatform": "LinkedIn",
+      "socialHandle": "steve-hanshew-33097215",
+      "socialUrl": "https://www.linkedin.com/in/steve-hanshew-33097215/",
+      "contactInfo": ""
+    },
+    {
+      "name": "Team Fastrax",
+      "role": "Nicole Condrey (Flag Jump)",
+      "category": "PERFORMANCE",
+      "socialPlatform": "Website",
+      "socialHandle": "teamfastrax.com",
+      "socialUrl": "https://teamfastrax.com",
+      "contactInfo": "info@teamfastrax.com | 513-423-5867"
+    },
+    {
+      "name": "Brett Hunter",
+      "role": "Aerobatic Performance",
+      "category": "PERFORMANCE",
+      "socialPlatform": "Facebook",
+      "socialHandle": "brett.hunter.5686",
+      "socialUrl": "https://www.facebook.com/brett.hunter.5686",
+      "contactInfo": ""
+    },
+    {
+      "name": "Nick Coleman",
+      "role": "Aerobatic Performance",
+      "category": "PERFORMANCE",
+      "socialPlatform": "Facebook",
+      "socialHandle": "nicholas.coleman.3910",
+      "socialUrl": "https://www.facebook.com/nicholas.coleman.3910",
+      "contactInfo": ""
+    },
+    {
+      "name": "Bob Richards",
+      "role": "Aerobatic Performance",
+      "category": "PERFORMANCE",
+      "socialPlatform": "Facebook",
+      "socialHandle": "bob.richards.123829",
+      "socialUrl": "https://www.facebook.com/bob.richards.123829/",
+      "contactInfo": ""
+    },
+    {
+      "name": "Smoke on Aviation Team",
+      "role": "8 Pilot Formation Team",
+      "category": "PERFORMANCE",
+      "socialPlatform": "Facebook",
+      "socialHandle": "smokeonaviation",
+      "socialUrl": "https://www.facebook.com/smokeonaviation/",
+      "contactInfo": "smokeonaviation@gmail.com | smokeonaviation.com"
+    },
+    {
+      "name": "Mike Hartman",
+      "role": "Aerobatic Performance",
+      "category": "PERFORMANCE",
+      "socialPlatform": "Facebook",
+      "socialHandle": "Mike Hartman Airshows",
+      "socialUrl": "https://www.facebook.com/profile.php?id=61568467384604",
+      "contactInfo": "mikehartmanairshows@gmail.com | https://www.mikehartmanairshows.com"
+    },
+    {
+      "name": "Emerson Stewart III",
+      "role": "Aerobatic Performance",
+      "category": "PERFORMANCE",
+      "socialPlatform": "Facebook",
+      "socialHandle": "Emerson Stewart Airshows",
+      "socialUrl": "https://www.facebook.com/StewartAirshows",
+      "contactInfo": "stewartsaircraft.net | 513-897-7717 | stewartairshows@yahoo.com"
+    },
+    {
+      "name": "Rob LaCerda",
+      "role": "Aerobatic Performance",
+      "category": "PERFORMANCE",
+      "socialPlatform": "LinkedIn",
+      "socialHandle": "robert-tico-lacerda-154bb234",
+      "socialUrl": "https://www.linkedin.com/in/robert-tico-lacerda-154bb234/",
+      "contactInfo": ""
     }
   ],
   "info": {

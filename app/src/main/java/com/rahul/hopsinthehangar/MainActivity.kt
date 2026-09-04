@@ -18,6 +18,10 @@ import kotlin.OptIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -58,6 +62,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -425,7 +431,7 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                                 maxWidth = targetWidth
                             )
                         )
-                        layout(constraints.maxWidth, placeable.height) {
+                        layout(constraints.maxWidth, placeable.height - bleedPx) {
                             placeable.place(-bleedPx, -bleedPx)
                         }
                     },
@@ -642,6 +648,8 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
             }
             composable(Screen.Entertainment.route) {
                 EntertainmentScreen(
+                    groundEntertainment = eventData?.groundEntertainment ?: emptyList(),
+                    performers = eventData?.performers ?: emptyList(),
                     schedule = eventData?.schedule ?: emptyList()
                 )
             }
@@ -660,12 +668,27 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
 }
 
 @Serializable
+data class EntertainmentItem(
+    val name: String,
+    val role: String,
+    val category: String? = null,
+    val description: String? = null,
+    val about: String? = null,
+    val socialPlatform: String? = null,
+    val socialHandle: String? = null,
+    val socialUrl: String? = null,
+    val contactInfo: String? = null
+)
+
+@Serializable
 data class EventData(
     val sponsors: List<SponsorItem>,
     val vendors: List<VendorItem>,
     val schedule: List<ScheduleItem>,
     val info: GeneralInfo,
-    val faq: List<FaqItemData> = emptyList()
+    val faq: List<FaqItemData> = emptyList(),
+    val groundEntertainment: List<EntertainmentItem> = emptyList(),
+    val performers: List<EntertainmentItem> = emptyList()
 )
 
 @Serializable
@@ -945,11 +968,79 @@ fun HomeScreen(eventData: EventData?) {
     val scope = rememberCoroutineScope()
     val carouselItems = rememberCarouselItems(context)
     val listState = rememberLazyListState()
+    var selectedFullImageItem by remember { mutableStateOf<CarouselItem?>(null) }
 
     LaunchedEffect(carouselItems) {
         if (carouselItems.isNotEmpty()) {
             val middleIndex = carouselItems.size / 2
             listState.scrollToItem(middleIndex)
+        }
+    }
+
+    if (selectedFullImageItem != null) {
+        Dialog(
+            onDismissRequest = { selectedFullImageItem = null },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false
+            )
+        ) {
+            var scale by remember { mutableFloatStateOf(1f) }
+            var offset by remember { mutableStateOf(Offset.Zero) }
+
+            val model: Any = when (val item = selectedFullImageItem) {
+                is CarouselItem.Photo -> item.url
+                is CarouselItem.LocalDrawable -> item.resId
+                is CarouselItem.Logo -> "file:///android_asset/main_icon.png"
+                null -> ""
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = { selectedFullImageItem = null }
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectTransformGestures { centroid, pan, zoom, _ ->
+                                val oldScale = scale
+                                val newScale = (scale * zoom).coerceIn(1f, 5f)
+                                val effectiveZoom = if (oldScale == 0f) 1f else newScale / oldScale
+
+                                val center = Offset(size.width / 2f, size.height / 2f)
+                                offset = (offset + pan) + (centroid - center - offset) * (1f - effectiveZoom)
+                                scale = newScale
+
+                                if (scale <= 1f) {
+                                    offset = Offset.Zero
+                                }
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    AsyncImage(
+                        model = model,
+                        contentDescription = "Full Screen Zoomable Image",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                translationX = offset.x,
+                                translationY = offset.y
+                            ),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
         }
     }
 
@@ -1026,15 +1117,32 @@ fun HomeScreen(eventData: EventData?) {
                             }
                         }
                         is CarouselItem.Photo -> {
-                            Box(modifier = Modifier.size(width = 240.dp, height = 240.dp)) {
+                            val photoInteractionSource = remember { MutableInteractionSource() }
+                            val isPhotoPressed by photoInteractionSource.collectIsPressedAsState()
+                            val photoShadowX = if (isPhotoPressed) 2.dp else 6.dp
+                            val photoShadowY = if (isPhotoPressed) 2.dp else 6.dp
+                            val photoTransX = if (isPhotoPressed) 4.dp else 0.dp
+                            val photoTransY = if (isPhotoPressed) 4.dp else 0.dp
+
+                            Box(modifier = Modifier
+                                .size(width = 240.dp, height = 240.dp)
+                                .offset(x = photoTransX, y = photoTransY)
+                            ) {
                                 Box(
                                     modifier = Modifier
                                         .matchParentSize()
-                                        .offset(x = 6.dp, y = 6.dp)
+                                        .offset(x = photoShadowX, y = photoShadowY)
                                         .background(Color.Black, shape = RoundedCornerShape(8.dp))
                                 )
                                 Surface(
-                                    modifier = Modifier.matchParentSize(),
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .clickable(
+                                            interactionSource = photoInteractionSource,
+                                            indication = null
+                                        ) {
+                                            selectedFullImageItem = item
+                                        },
                                     shape = RoundedCornerShape(8.dp),
                                     color = Color.White,
                                     border = BorderStroke(3.dp, Color.Black)
@@ -1051,15 +1159,32 @@ fun HomeScreen(eventData: EventData?) {
                             }
                         }
                         is CarouselItem.LocalDrawable -> {
-                            Box(modifier = Modifier.size(width = 240.dp, height = 240.dp)) {
+                            val drawableInteractionSource = remember { MutableInteractionSource() }
+                            val isDrawablePressed by drawableInteractionSource.collectIsPressedAsState()
+                            val drawableShadowX = if (isDrawablePressed) 2.dp else 6.dp
+                            val drawableShadowY = if (isDrawablePressed) 2.dp else 6.dp
+                            val drawableTransX = if (isDrawablePressed) 4.dp else 0.dp
+                            val drawableTransY = if (isDrawablePressed) 4.dp else 0.dp
+
+                            Box(modifier = Modifier
+                                .size(width = 240.dp, height = 240.dp)
+                                .offset(x = drawableTransX, y = drawableTransY)
+                            ) {
                                 Box(
                                     modifier = Modifier
                                         .matchParentSize()
-                                        .offset(x = 6.dp, y = 6.dp)
+                                        .offset(x = drawableShadowX, y = drawableShadowY)
                                         .background(Color.Black, shape = RoundedCornerShape(8.dp))
                                 )
                                 Surface(
-                                    modifier = Modifier.matchParentSize(),
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .clickable(
+                                            interactionSource = drawableInteractionSource,
+                                            indication = null
+                                        ) {
+                                            selectedFullImageItem = item
+                                        },
                                     shape = RoundedCornerShape(8.dp),
                                     color = Color.White,
                                     border = BorderStroke(3.dp, Color.Black)
@@ -2238,9 +2363,385 @@ fun DetailContactRow(icon: ImageVector, value: String, onClick: () -> Unit = {})
     }
 }
 
+@Composable
+fun EntertainmentButton(
+    item: EntertainmentItem,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = NeoWhite
+) {
+    val category = item.category?.ifBlank { null } ?: when {
+        item.role.contains("Singer", ignoreCase = true) || item.role.contains("Anthem", ignoreCase = true) -> "ANTHEM"
+        item.role.contains("DJ", ignoreCase = true) || item.role.contains("Music", ignoreCase = true) -> "MUSIC"
+        item.role.contains("Check In", ignoreCase = true) -> "CHECK IN"
+        item.role.contains("Announcer", ignoreCase = true) -> "ANNOUNCER"
+        else -> "PERFORMANCE"
+    }
+
+    val icon = when (category) {
+        "MUSIC" -> Icons.Default.MusicNote
+        "ANTHEM" -> Icons.Default.RecordVoiceOver
+        "CHECK IN" -> Icons.Default.VolunteerActivism
+        "ANNOUNCER" -> Icons.Default.Mic
+        else -> Icons.Default.AirplanemodeActive
+    }
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val shadowOffsetX = if (isPressed) 2.dp else 5.dp
+    val shadowOffsetY = if (isPressed) 2.dp else 5.dp
+    val translationX = if (isPressed) 3.dp else 0.dp
+    val translationY = if (isPressed) 3.dp else 0.dp
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .offset(x = translationX, y = translationY)
+    ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .offset(x = shadowOffsetX, y = shadowOffsetY)
+                .background(Color.Black, shape = RoundedCornerShape(8.dp))
+        )
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick
+                ),
+            shape = RoundedCornerShape(8.dp),
+            color = containerColor,
+            border = BorderStroke(3.dp, Color.Black)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = NeoYellow,
+                        border = BorderStroke(2.dp, Color.Black),
+                        modifier = Modifier.size(42.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Column {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = NeoPink,
+                            border = BorderStroke(1.dp, Color.Black)
+                        ) {
+                            Text(
+                                text = category.uppercase(),
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 8.sp,
+                                    letterSpacing = 1.sp
+                                ),
+                                color = Color.Black
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = item.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = Color.Black
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntertainmentScreen(schedule: List<ScheduleItem>) {
+fun EntertainmentScreen(
+    groundEntertainment: List<EntertainmentItem>,
+    performers: List<EntertainmentItem>,
+    schedule: List<ScheduleItem>
+) {
+    var selectedEntertainmentItem by remember { mutableStateOf<EntertainmentItem?>(null) }
+    val itemSheetState = rememberModalBottomSheetState()
+
+    if (selectedEntertainmentItem != null) {
+        val item = selectedEntertainmentItem!!
+        val context = LocalContext.current
+
+        val category = item.category?.ifBlank { null } ?: when {
+            item.role.contains("Singer", ignoreCase = true) || item.role.contains("Anthem", ignoreCase = true) -> "ANTHEM"
+            item.role.contains("DJ", ignoreCase = true) || item.role.contains("Music", ignoreCase = true) -> "MUSIC"
+            item.role.contains("Check In", ignoreCase = true) -> "CHECK IN"
+            item.role.contains("Announcer", ignoreCase = true) -> "ANNOUNCER"
+            else -> "PERFORMANCE"
+        }
+
+        val icon = when (category) {
+            "MUSIC" -> Icons.Default.MusicNote
+            "ANTHEM" -> Icons.Default.RecordVoiceOver
+            "CHECK IN" -> Icons.Default.VolunteerActivism
+            "ANNOUNCER" -> Icons.Default.Mic
+            else -> Icons.Default.AirplanemodeActive
+        }
+
+        ModalBottomSheet(
+            onDismissRequest = { selectedEntertainmentItem = null },
+            sheetState = itemSheetState,
+            containerColor = MaterialTheme.colorScheme.background,
+            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Header Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(modifier = Modifier.size(64.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .offset(x = 4.dp, y = 4.dp)
+                                .background(Color.Black, shape = RoundedCornerShape(8.dp))
+                        )
+                        Surface(
+                            modifier = Modifier.matchParentSize(),
+                            shape = RoundedCornerShape(8.dp),
+                            color = NeoYellow,
+                            border = BorderStroke(2.dp, Color.Black)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = NeoPink,
+                            border = BorderStroke(1.5.dp, Color.Black)
+                        ) {
+                            Text(
+                                text = category.uppercase(),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.sp
+                                ),
+                                color = Color.Black
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = item.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = Color.Black
+                        )
+                    }
+                }
+
+                // Role / Details Card
+                NeoCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = NeoWhite
+                ) {
+                    Column {
+                        Text(
+                            "ROLE & DETAILS",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Black,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = item.role,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                        val aboutText = item.about?.ifBlank { item.description } ?: item.description
+                        if (!aboutText.isNullOrBlank()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LinkifyText(
+                                text = aboutText,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black.copy(alpha = 0.9f)
+                            )
+                        }
+                    }
+                }
+
+                // Social / Contact Information Card
+                val hasSocial = !item.socialPlatform.isNullOrBlank() || !item.socialHandle.isNullOrBlank() || !item.socialUrl.isNullOrBlank()
+                val hasContact = !item.contactInfo.isNullOrBlank()
+
+                if (hasSocial || hasContact) {
+                    NeoCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        containerColor = NeoWhite
+                    ) {
+                        Column {
+                            Text(
+                                "CONNECT & CONTACT",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Black,
+                                color = Color.Black
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            if (hasSocial) {
+                                val handleText = buildString {
+                                    if (!item.socialPlatform.isNullOrBlank()) append("${item.socialPlatform}: ")
+                                    if (!item.socialHandle.isNullOrBlank()) append(item.socialHandle)
+                                }
+                                val icon = if (item.socialPlatform?.equals("website", ignoreCase = true) == true) {
+                                    Icons.Default.Language
+                                } else {
+                                    Icons.Default.Share
+                                }
+                                if (handleText.isNotBlank()) {
+                                    DetailContactRow(
+                                        icon = icon,
+                                        value = handleText,
+                                        onClick = {
+                                            if (!item.socialUrl.isNullOrBlank()) {
+                                                try {
+                                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.socialUrl))
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    Log.e("EntertainmentSheet", "Error opening social URL", e)
+                                                }
+                                            }
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+
+                                if (!item.socialUrl.isNullOrBlank() && item.socialHandle.isNullOrBlank()) {
+                                    DetailContactRow(
+                                        icon = Icons.Default.Language,
+                                        value = item.socialUrl,
+                                        onClick = {
+                                            try {
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.socialUrl))
+                                                context.startActivity(intent)
+                                            } catch (e: Exception) {
+                                                Log.e("EntertainmentSheet", "Error opening social URL", e)
+                                            }
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+                            }
+
+                            if (hasContact) {
+                                val contactParts = item.contactInfo.orEmpty().split("|", ",").map { it.trim() }.filter { it.isNotEmpty() }
+                                contactParts.forEach { contactStr ->
+                                    val isEmail = contactStr.contains("@") || contactStr.startsWith("mailto:", ignoreCase = true)
+                                    val isPhone = !isEmail && contactStr.any { it.isDigit() } && contactStr.replace(Regex("[^0-9]"), "").length >= 7
+                                    val isUrl = contactStr.startsWith("http://", ignoreCase = true) || contactStr.startsWith("https://", ignoreCase = true)
+
+                                    val icon = when {
+                                        isEmail -> Icons.Default.Email
+                                        isPhone -> Icons.Default.Phone
+                                        isUrl -> Icons.Default.Language
+                                        else -> Icons.Default.Info
+                                    }
+
+                                    DetailContactRow(
+                                        icon = icon,
+                                        value = contactStr,
+                                        onClick = {
+                                            try {
+                                                when {
+                                                    isEmail -> {
+                                                        val cleanEmail = contactStr.replace("mailto:", "", ignoreCase = true).trim()
+                                                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                                            data = Uri.parse("mailto:$cleanEmail")
+                                                        }
+                                                        context.startActivity(intent)
+                                                    }
+                                                    isPhone -> {
+                                                        val cleanPhone = contactStr.replace(Regex("[^0-9+]"), "")
+                                                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                                                            data = Uri.parse("tel:$cleanPhone")
+                                                        }
+                                                        context.startActivity(intent)
+                                                    }
+                                                    isUrl -> {
+                                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(contactStr))
+                                                        context.startActivity(intent)
+                                                    }
+                                                }
+                                            } catch (e: Exception) {
+                                                Log.e("EntertainmentSheet", "Error opening contact detail", e)
+                                            }
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+
+                NeoButton(
+                    onClick = { selectedEntertainmentItem = null },
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = NeoYellow
+                ) {
+                    Text("CLOSE", fontWeight = FontWeight.Black)
+                }
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -2257,43 +2758,14 @@ fun EntertainmentScreen(schedule: List<ScheduleItem>) {
             letterSpacing = 1.sp
         )
 
-        NeoCard(
-            modifier = Modifier.fillMaxWidth(),
-            containerColor = NeoWhite
-        ) {
-            Column(modifier = Modifier.padding(4.dp)) {
-                NeoListItem(
-                    headline = { Text("DJ Ron Perry", fontWeight = FontWeight.Black) },
-                    supporting = { Text("Live Music DJ") },
-                    overline = { Text("MUSIC", color = Color.Black, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black)) },
-                    leading = {
-                        Surface(shape = RoundedCornerShape(8.dp), color = NeoYellow, border = BorderStroke(2.dp, Color.Black), modifier = Modifier.size(40.dp)) {
-                            Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp)) }
-                        }
-                    }
-                )
-                HorizontalDivider(thickness = 2.dp, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-                NeoListItem(
-                    headline = { Text("Jennifer Kauffman", fontWeight = FontWeight.Black) },
-                    supporting = { Text("National Anthem Singer") },
-                    overline = { Text("ANTHEM", color = Color.Black, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black)) },
-                    leading = {
-                        Surface(shape = RoundedCornerShape(8.dp), color = NeoYellow, border = BorderStroke(2.dp, Color.Black), modifier = Modifier.size(40.dp)) {
-                            Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.RecordVoiceOver, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp)) }
-                        }
-                    }
-                )
-                HorizontalDivider(thickness = 2.dp, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-                NeoListItem(
-                    headline = { Text("Steel Drum Dave", fontWeight = FontWeight.Black) },
-                    supporting = { Text("Check In Entertainment") },
-                    overline = { Text("CHECK IN", color = Color.Black, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black)) },
-                    leading = {
-                        Surface(shape = RoundedCornerShape(8.dp), color = NeoYellow, border = BorderStroke(2.dp, Color.Black), modifier = Modifier.size(40.dp)) {
-                            Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.VolunteerActivism, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp)) }
-                        }
-                    }
-                )
+        if (groundEntertainment.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                groundEntertainment.forEach { item ->
+                    EntertainmentButton(
+                        item = item,
+                        onClick = { selectedEntertainmentItem = item }
+                    )
+                }
             }
         }
 
@@ -2302,56 +2774,16 @@ fun EntertainmentScreen(schedule: List<ScheduleItem>) {
             style = MaterialTheme.typography.titleLarge.copy(fontSize = 17.sp),
             color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Black,
-            letterSpacing = 1.sp,
-            maxLines = 1,
-            softWrap = false,
-            overflow = TextOverflow.Ellipsis
+            letterSpacing = 1.sp
         )
 
-        NeoCard(
-            modifier = Modifier.fillMaxWidth(),
-            containerColor = NeoWhite
-        ) {
-            Column(modifier = Modifier.padding(4.dp)) {
-                val performers = listOf(
-                    "Wild Bill" to "Steven Hanshew (Announcer)",
-                    "Team Fastrax" to "Nicole Condrey (Flag Jump)",
-                    "Brett Hunter" to "Aerobatic Performance",
-                    "Nick Coleman" to "Aerobatic Performance",
-                    "Bob Richards" to "Aerobatic Performance",
-                    "Smoke on Aviation Team" to "8 Pilot Formation Team",
-                    "Mike Hartman" to "Aerobatic Performance",
-                    "Emerson Stewart III" to "Aerobatic Performance",
-                    "Rob LaCerda" to "Aerobatic Performance"
-                )
-
-                performers.forEachIndexed { index, (name, role) ->
-                    NeoListItem(
-                        headline = { Text(name, fontWeight = FontWeight.Black) },
-                        supporting = { Text(role) },
-                        overline = {
-                            Text(
-                                if (role.contains("Announcer")) "ANNOUNCER" else "PERFORMANCE",
-                                color = Color.Black,
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black)
-                            )
-                        },
-                        leading = {
-                            Surface(shape = RoundedCornerShape(8.dp), color = NeoYellow, border = BorderStroke(2.dp, Color.Black), modifier = Modifier.size(40.dp)) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        if (role.contains("Announcer")) Icons.Default.Mic else Icons.Default.AirplanemodeActive,
-                                        contentDescription = null,
-                                        tint = Color.Black,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
-                        }
+        if (performers.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                performers.forEach { item ->
+                    EntertainmentButton(
+                        item = item,
+                        onClick = { selectedEntertainmentItem = item }
                     )
-                    if (index < performers.size - 1) {
-                        HorizontalDivider(thickness = 2.dp, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-                    }
                 }
             }
         }
