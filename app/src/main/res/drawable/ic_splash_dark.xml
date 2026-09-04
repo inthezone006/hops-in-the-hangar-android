@@ -10,11 +10,11 @@
 
     <!-- App Icon Foreground -->
     <item
-        android:width="120dp"
-        android:height="120dp"
+        android:width="90dp"
+        android:height="90dp"
         android:gravity="center">
         <bitmap
-            android:src="@mipmap/ic_launcher_foreground"
+            android:src="@drawable/main_icon"
             android:gravity="fill" />
     </item>
 </layer-list>
