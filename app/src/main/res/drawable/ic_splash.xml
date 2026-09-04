@@ -10,11 +10,11 @@
 
     <!-- App Icon Foreground -->
     <item
-        android:width="90dp"
-        android:height="90dp"
+        android:width="150dp"
+        android:height="80dp"
         android:gravity="center">
         <bitmap
-            android:src="@drawable/main_icon"
+            android:src="@drawable/splash_icon"
             android:gravity="fill" />
     </item>
 </layer-list>
