@@ -47,6 +47,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
@@ -411,7 +412,21 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
 
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .layout { measurable, constraints ->
+                        val bleedPx = 3.dp.roundToPx()
+                        val targetWidth = constraints.maxWidth + (bleedPx * 2)
+                        val placeable = measurable.measure(
+                            constraints.copy(
+                                minWidth = targetWidth,
+                                maxWidth = targetWidth
+                            )
+                        )
+                        layout(constraints.maxWidth, placeable.height) {
+                            placeable.place(-bleedPx, 0)
+                        }
+                    },
                 border = BorderStroke(3.dp, MaterialTheme.colorScheme.outline),
                 shape = RoundedCornerShape(0.dp)
             ) {
@@ -505,7 +520,21 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
         bottomBar = {
             Surface(
                 color = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .layout { measurable, constraints ->
+                        val bleedPx = 3.dp.roundToPx()
+                        val targetWidth = constraints.maxWidth + (bleedPx * 2)
+                        val placeable = measurable.measure(
+                            constraints.copy(
+                                minWidth = targetWidth,
+                                maxWidth = targetWidth
+                            )
+                        )
+                        layout(constraints.maxWidth, placeable.height) {
+                            placeable.place(-bleedPx, 0)
+                        }
+                    },
                 border = BorderStroke(3.dp, MaterialTheme.colorScheme.outline),
                 shape = RoundedCornerShape(0.dp)
             ) {
