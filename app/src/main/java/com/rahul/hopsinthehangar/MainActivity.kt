@@ -1349,7 +1349,8 @@ fun HomeScreen(eventData: EventData?) {
 
                 val crew = listOf(
                     "Rich Bevis", "Kurt Yearout", "Sara Yearout", "Tom Spielmann",
-                    "Sean Askren", "Mica Jones", "Missy Lawwill", "Jamie Murphy"
+                    "Sean Askren", "Mica Jones", "Missy Lawwill", "Jamie Murphy",
+                    "Rahul Menon"
                 )
 
                 @OptIn(ExperimentalLayoutApi::class)
