@@ -1860,7 +1860,7 @@ fun VendorsScreen(
                         Surface(
                             modifier = Modifier.matchParentSize(),
                             shape = RoundedCornerShape(8.dp),
-                            color = NeoYellow,
+                            color = NeoWhite,
                             border = BorderStroke(2.dp, Color.Black)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -2100,7 +2100,7 @@ fun VendorsScreen(
                             Surface(
                                 modifier = Modifier.size(48.dp),
                                 shape = RoundedCornerShape(8.dp),
-                                color = NeoYellow,
+                                color = NeoWhite,
                                 border = BorderStroke(2.dp, Color.Black)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
