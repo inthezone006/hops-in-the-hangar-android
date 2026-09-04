@@ -127,7 +127,6 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
     object Sponsors : Screen("sponsors", "Sponsors", Icons.Default.Star)
     object Entertainment : Screen("entertainment", "Events", Icons.AutoMirrored.Filled.List)
     object Vendors : Screen("vendors", "Vendors", Icons.Default.ShoppingCart)
-    object Detail : Screen("detail/{type}/{id}", "Detail", Icons.Default.Info)
 }
 
 // Pure Neo-Brutalist Custom Components with Tactile Press Effects
@@ -592,8 +591,10 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
             composable(Screen.Sponsors.route) {
                 SponsorsScreen(
                     sponsors = eventData?.sponsors ?: emptyList(),
-                    onSponsorClick = { id ->
-                        navController.navigate("detail/sponsor/$id")
+                    onSponsorClick = { sponsor ->
+                        analytics?.logEvent("sponsor_detail_view") {
+                            param("sponsor_id", sponsor.name)
+                        }
                     }
                 )
             }
@@ -611,16 +612,6 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                         }
                     }
                 )
-            }
-            composable(Screen.Detail.route) { backStackEntry ->
-                val type = backStackEntry.arguments?.getString("type") ?: ""
-                val id = backStackEntry.arguments?.getString("id") ?: ""
-                val item = when(type) {
-                    "vendor" -> eventData?.vendors?.find { it.name == id }
-                    "sponsor" -> eventData?.sponsors?.find { it.name == id }
-                    else -> null
-                }
-                DetailScreen(type, id, item)
             }
         }
     }
@@ -648,7 +639,9 @@ data class SponsorItem(
     val description: String,
     val website: String? = null,
     val links: List<SponsorLink>? = null,
-    val mapId: String? = null
+    val mapId: String? = null,
+    val email: String? = null,
+    val phone: String? = null
 )
 
 @Serializable
@@ -1143,75 +1136,6 @@ fun HomeScreen(eventData: EventData?) {
             Spacer(modifier = Modifier.height(32.dp))
 
             FaqSection(eventData.faq)
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                "NEARBY HOTELS",
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 1.sp
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            NeoCard(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = NeoWhite
-            ) {
-                Column {
-                    Text(
-                        "Just a quick 15 minute drive there are hotels right by the I75 ramp off of 122.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Black.copy(alpha = 0.8f)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    val context = LocalContext.current
-                    eventData.info.hotels.forEach { hotel ->
-                        Box(modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .offset(x = 4.dp, y = 4.dp)
-                                    .background(Color.Black, shape = RoundedCornerShape(8.dp))
-                            )
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null
-                                    ) {
-                                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse(hotel.link))
-                                        context.startActivity(intent)
-                                    },
-                                color = NeoYellow,
-                                shape = RoundedCornerShape(8.dp),
-                                border = BorderStroke(2.dp, Color.Black)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(Icons.Default.Hotel, contentDescription = null, tint = Color.Black)
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    Text(hotel.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black, color = Color.Black)
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Black)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -1316,11 +1240,12 @@ fun HomeScreen(eventData: EventData?) {
 @Composable
 fun SponsorsScreen(
     sponsors: List<SponsorItem>,
-    onSponsorClick: (String) -> Unit
+    onSponsorClick: (SponsorItem) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val allLevels = sponsors.map { it.level }.distinct()
     var selectedLevels by remember { mutableStateOf(allLevels.toSet()) }
+    var selectedSponsor by remember { mutableStateOf<SponsorItem?>(null) }
 
     val filteredSponsors = sponsors.filter {
         (it.name.contains(searchQuery, ignoreCase = true) || it.level.contains(searchQuery, ignoreCase = true)) &&
@@ -1329,6 +1254,7 @@ fun SponsorsScreen(
 
     var showFilterSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+    val sponsorSheetState = rememberModalBottomSheetState()
 
     if (showFilterSheet) {
         ModalBottomSheet(
@@ -1394,6 +1320,226 @@ fun SponsorsScreen(
                     containerColor = NeoYellow
                 ) {
                     Text("APPLY FILTERS", fontWeight = FontWeight.Black)
+                }
+            }
+        }
+    }
+
+    if (selectedSponsor != null) {
+        ModalBottomSheet(
+            onDismissRequest = { selectedSponsor = null },
+            sheetState = sponsorSheetState,
+            containerColor = MaterialTheme.colorScheme.background,
+            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+        ) {
+            val sponsor = selectedSponsor!!
+            val context = LocalContext.current
+            val names = if (
+                sponsor.name.contains("Kara Goheen", ignoreCase = true) ||
+                sponsor.name.contains("Affordable Dentures", ignoreCase = true)
+            ) {
+                listOf(sponsor.name)
+            } else {
+                sponsor.name.split("&").map { it.trim() }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(if (names.size > 1) 72.dp else 64.dp)
+                            .height(64.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        names.forEachIndexed { index, name ->
+                            val resourceName = getResourceName(name)
+                            val resourceId = context.resources.getIdentifier(resourceName, "drawable", context.packageName)
+
+                            Surface(
+                                modifier = Modifier
+                                    .padding(start = (index * 24).dp)
+                                    .size(64.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                color = NeoWhite,
+                                border = BorderStroke(2.dp, Color.Black)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    if (resourceId != 0) {
+                                        AsyncImage(
+                                            model = resourceId,
+                                            contentDescription = name,
+                                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Icon(
+                                            Icons.Default.Star,
+                                            contentDescription = null,
+                                            tint = Color.Black,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = NeoYellow,
+                            border = BorderStroke(1.5.dp, Color.Black)
+                        ) {
+                            Text(
+                                text = sponsor.level.uppercase(),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.sp
+                                ),
+                                color = Color.Black
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = sponsor.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = Color.Black
+                        )
+                    }
+                }
+
+                NeoCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = NeoWhite
+                ) {
+                    Column {
+                        Text(
+                            "ABOUT",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Black,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LinkifyText(
+                            text = sponsor.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Black.copy(alpha = 0.9f)
+                        )
+                    }
+                }
+
+                if (!sponsor.email.isNullOrBlank() || !sponsor.phone.isNullOrBlank() || !sponsor.website.isNullOrBlank() || !sponsor.links.isNullOrEmpty()) {
+                    val noWebsiteSponsors = setOf("lewis horticultural", "askren balloon team", "kara goheen friends", "rh seals")
+                    val isNoWebsite = noWebsiteSponsors.any { sponsor.name.lowercase().contains(it) }
+
+                    NeoCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        containerColor = NeoWhite
+                    ) {
+                        Column {
+                            Text(
+                                "CONTACT INFORMATION",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Black,
+                                color = Color.Black
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            sponsor.email?.let { email ->
+                                DetailContactRow(
+                                    icon = Icons.Default.Email,
+                                    value = email,
+                                    onClick = {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                                data = Uri.parse("mailto:$email")
+                                            }
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Log.e("SponsorBottomSheet", "Error sending email", e)
+                                        }
+                                    }
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
+                            sponsor.phone?.let { phone ->
+                                DetailContactRow(
+                                    icon = Icons.Default.Phone,
+                                    value = phone,
+                                    onClick = {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_DIAL).apply {
+                                                data = Uri.parse("tel:$phone")
+                                            }
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Log.e("SponsorBottomSheet", "Error making phone call", e)
+                                        }
+                                    }
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
+                            if (!sponsor.links.isNullOrEmpty()) {
+                                sponsor.links.forEach { link ->
+                                    DetailContactRow(
+                                        icon = Icons.Default.Language,
+                                        value = "${link.label}: ${link.url}",
+                                        onClick = {
+                                            try {
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link.url))
+                                                context.startActivity(intent)
+                                            } catch (e: Exception) {
+                                                Log.e("SponsorBottomSheet", "Error opening website", e)
+                                            }
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+                            } else {
+                                sponsor.website?.let { website ->
+                                    DetailContactRow(
+                                        icon = Icons.Default.Language,
+                                        value = website,
+                                        onClick = {
+                                            if (isNoWebsite || website.isBlank()) {
+                                                Toast.makeText(context, "A website does not exist.", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                try {
+                                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(website))
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    Log.e("SponsorBottomSheet", "Error opening website", e)
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                NeoButton(
+                    onClick = { selectedSponsor = null },
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = NeoYellow
+                ) {
+                    Text("CLOSE", fontWeight = FontWeight.Black)
                 }
             }
         }
@@ -1471,7 +1617,11 @@ fun SponsorsScreen(
                 items(pinnedSponsors) { sponsor ->
                     SponsorCard(
                         sponsor = sponsor,
-                        isPinned = true
+                        isPinned = true,
+                        onClick = {
+                            onSponsorClick(sponsor)
+                            selectedSponsor = sponsor
+                        }
                     )
                 }
                 item {
@@ -1484,7 +1634,11 @@ fun SponsorsScreen(
             items(otherSponsors) { sponsor ->
                 SponsorCard(
                     sponsor = sponsor,
-                    isPinned = false
+                    isPinned = false,
+                    onClick = {
+                        onSponsorClick(sponsor)
+                        selectedSponsor = sponsor
+                    }
                 )
             }
             item { Spacer(modifier = Modifier.height(24.dp)) }
@@ -1492,63 +1646,12 @@ fun SponsorsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SponsorCard(
     sponsor: SponsorItem,
-    isPinned: Boolean
+    isPinned: Boolean,
+    onClick: () -> Unit
 ) {
-    val context = LocalContext.current
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
-
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.background,
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-                    .padding(bottom = 32.dp)
-            ) {
-                Text(
-                    text = sponsor.name,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = "Which website would you like to visit?",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                sponsor.links?.forEach { link ->
-                    NeoButton(
-                        onClick = {
-                            try {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link.url))
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                Log.e("SponsorsScreen", "Error opening website: ${link.url}", e)
-                            }
-                            showBottomSheet = false
-                        },
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                        containerColor = NeoYellow
-                    ) {
-                        Text(link.label, fontWeight = FontWeight.Black)
-                    }
-                }
-            }
-        }
-    }
-
     Box(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
@@ -1561,28 +1664,9 @@ fun SponsorCard(
                 .fillMaxWidth()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) {
-                    val links = sponsor.links
-                    if (links != null && links.size > 1) {
-                        showBottomSheet = true
-                    } else {
-                        val url = links?.firstOrNull()?.url ?: sponsor.website
-                        val noWebsiteSponsors = setOf("lewis horticultural", "askren balloon team", "kara goheen friends", "rh seals")
-                        val isNoWebsite = noWebsiteSponsors.any { sponsor.name.lowercase().contains(it) }
-
-                        if (isNoWebsite || url.isNullOrBlank()) {
-                            Toast.makeText(context, "A website does not exist for this sponsor.", Toast.LENGTH_SHORT).show()
-                        } else {
-                            try {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                Log.e("SponsorsScreen", "Error opening website: $url", e)
-                            }
-                        }
-                    }
-                },
+                    indication = null,
+                    onClick = onClick
+                ),
             shape = RoundedCornerShape(8.dp),
             color = if (isPinned) NeoYellow else NeoWhite,
             contentColor = Color.Black,
@@ -2047,160 +2131,6 @@ fun VendorsScreen(
             }
             item { Spacer(modifier = Modifier.height(24.dp)) }
         }
-    }
-}
-
-@Composable
-fun DetailScreen(type: String, id: String, item: Any?) {
-    val context = LocalContext.current
-
-    val description = when (item) {
-        is VendorItem -> item.description
-        is SponsorItem -> item.description
-        else -> "Detailed information for $id"
-    }
-
-    val email = if (item is VendorItem) item.email else null
-    val phone = if (item is VendorItem) item.phone else null
-    val website = if (item is VendorItem) item.website else null
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        Box(contentAlignment = Alignment.BottomEnd) {
-            Box(modifier = Modifier.fillMaxWidth().height(240.dp)) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .offset(x = 6.dp, y = 6.dp)
-                        .background(Color.Black, shape = RoundedCornerShape(8.dp))
-                )
-                Surface(
-                    modifier = Modifier.matchParentSize(),
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(3.dp, Color.Black)
-                ) {
-                    AsyncImage(
-                        model = "https://images.unsplash.com/photo-1532634896-26909d0d4b89?q=80&w=1000",
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-
-            Surface(
-                modifier = Modifier.padding(16.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = NeoYellow,
-                border = BorderStroke(2.dp, Color.Black)
-            ) {
-                Text(
-                    text = type.uppercase(),
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Black,
-                    fontWeight = FontWeight.Black
-                )
-            }
-        }
-
-        Text(
-            text = id,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Black,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center
-        )
-
-        NeoCard(
-            modifier = Modifier.fillMaxWidth(),
-            containerColor = NeoWhite
-        ) {
-            Column {
-                Text(
-                    "ABOUT",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                LinkifyText(
-                    text = description,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.Black.copy(alpha = 0.8f)
-                )
-            }
-        }
-
-        if (email != null || phone != null || website != null) {
-            val noWebsiteNames = setOf("lewis horticultural", "askren balloon team", "kara goheen friends", "rh seals")
-            val isNoWebsite = noWebsiteNames.any { id.lowercase().contains(it) }
-
-            NeoCard(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = NeoWhite
-            ) {
-                Column {
-                    Text(
-                        "CONTACT INFORMATION",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        color = Color.Black
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    email?.let {
-                        DetailContactRow(
-                            icon = Icons.Default.Email,
-                            value = it,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                    data = Uri.parse("mailto:$it")
-                                }
-                                context.startActivity(intent)
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                    }
-                    phone?.let {
-                        DetailContactRow(
-                            icon = Icons.Default.Phone,
-                            value = it,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_DIAL).apply {
-                                    data = Uri.parse("tel:$it")
-                                }
-                                context.startActivity(intent)
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                    }
-                    website?.let {
-                        DetailContactRow(
-                            icon = Icons.Default.Language,
-                            value = it,
-                            onClick = {
-                                if (isNoWebsite) {
-                                    Toast.makeText(context, "A website does not exist.", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
-                                    context.startActivity(intent)
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
