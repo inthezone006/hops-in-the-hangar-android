@@ -18,6 +18,7 @@ import kotlin.OptIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -56,11 +57,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringSetPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -89,6 +85,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.foundation.text.BasicTextField
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.delay
 
 fun getResourceName(name: String?): String {
     if (name == null) return ""
@@ -102,27 +99,6 @@ fun getResourceName(name: String?): String {
         .replace(Regex("[^a-z0-9_]"), "")
         .replace(Regex("__+"), "_")
         .trim('_')
-}
-
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "favorites")
-
-class FavoritesRepository(private val dataStore: DataStore<Preferences>) {
-    private val favoritesKey = stringSetPreferencesKey("favorite_ids")
-
-    val favoriteIds: Flow<Set<String>> = dataStore.data.map { preferences ->
-        preferences[favoritesKey] ?: emptySet()
-    }
-
-    suspend fun toggleFavorite(id: String) {
-        dataStore.edit { preferences ->
-            val current = preferences[favoritesKey] ?: emptySet()
-            if (current.contains(id)) {
-                preferences[favoritesKey] = current - id
-            } else {
-                preferences[favoritesKey] = current + id
-            }
-        }
-    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -289,6 +265,7 @@ fun NeoTextField(
                         onValueChange = onValueChange,
                         singleLine = singleLine,
                         textStyle = TextStyle(
+                            fontFamily = FontFamily.Monospace,
                             color = Color.Black,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
@@ -385,8 +362,6 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val repository = remember { FavoritesRepository(context.dataStore) }
-    val favoriteIds by repository.favoriteIds.collectAsState(initial = emptySet())
     var eventData by remember { mutableStateOf<EventData?>(null) }
 
     LaunchedEffect(Unit) {
@@ -455,7 +430,7 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                                 ) { navController.popBackStack() }
                             ) {
                                 Box(modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.Black, modifier = Modifier.size(18.dp))
                                 }
                             }
                         }
@@ -475,11 +450,18 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                     )
 
                     // Tickets Button on Top Bar
-                    Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                    val ticketsInteractionSource = remember { MutableInteractionSource() }
+                    val isTicketsPressed by ticketsInteractionSource.collectIsPressedAsState()
+                    val ticketsShadowX = if (isTicketsPressed) 1.dp else 2.dp
+                    val ticketsShadowY = if (isTicketsPressed) 1.dp else 2.dp
+                    val ticketsTransX = if (isTicketsPressed) 2.dp else 0.dp
+                    val ticketsTransY = if (isTicketsPressed) 2.dp else 0.dp
+
+                    Box(modifier = Modifier.align(Alignment.CenterEnd).offset(x = ticketsTransX, y = ticketsTransY)) {
                         Box(
                             modifier = Modifier
                                 .matchParentSize()
-                                .offset(x = 2.dp, y = 2.dp)
+                                .offset(x = ticketsShadowX, y = ticketsShadowY)
                                 .background(Color.Black, shape = RoundedCornerShape(6.dp))
                         )
                         Surface(
@@ -487,11 +469,14 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                             color = NeoPink,
                             border = BorderStroke(2.dp, Color.Black),
                             modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
+                                interactionSource = ticketsInteractionSource,
                                 indication = null
                             ) {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://middletownaviationfoundation.ticketspice.com/hops-in-the-hangar-2026"))
-                                context.startActivity(intent)
+                                scope.launch {
+                                    delay(100)
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://middletownaviationfoundation.ticketspice.com/hops-in-the-hangar-2026"))
+                                    context.startActivity(intent)
+                                }
                             }
                         ) {
                             Row(
@@ -609,10 +594,6 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                     sponsors = eventData?.sponsors ?: emptyList(),
                     onSponsorClick = { id ->
                         navController.navigate("detail/sponsor/$id")
-                    },
-                    favoriteIds = favoriteIds.toList(),
-                    onToggleFavorite = { id ->
-                        scope.launch { repository.toggleFavorite(id) }
                     }
                 )
             }
@@ -628,10 +609,6 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                         analytics?.logEvent("vendor_detail_view") {
                             param("vendor_id", id)
                         }
-                    },
-                    favoriteIds = favoriteIds.toList(),
-                    onToggleFavorite = { id ->
-                        scope.launch { repository.toggleFavorite(id) }
                     }
                 )
             }
@@ -926,6 +903,7 @@ fun rememberCarouselItems(context: Context): List<CarouselItem> {
 @Composable
 fun HomeScreen(eventData: EventData?) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val carouselItems = rememberCarouselItems(context)
     val listState = rememberLazyListState()
 
@@ -963,24 +941,36 @@ fun HomeScreen(eventData: EventData?) {
                 items(carouselItems) { item ->
                     when (item) {
                         is CarouselItem.Logo -> {
+                            val logoInteractionSource = remember { MutableInteractionSource() }
+                            val isLogoPressed by logoInteractionSource.collectIsPressedAsState()
+                            val logoShadowX = if (isLogoPressed) 2.dp else 6.dp
+                            val logoShadowY = if (isLogoPressed) 2.dp else 6.dp
+                            val logoTransX = if (isLogoPressed) 4.dp else 0.dp
+                            val logoTransY = if (isLogoPressed) 4.dp else 0.dp
+
                             Box(modifier = Modifier
                                 .size(width = 240.dp, height = 240.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
-                                ) {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://hopsinthehangar.com"))
-                                    context.startActivity(intent)
-                                }
+                                .offset(x = logoTransX, y = logoTransY)
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .matchParentSize()
-                                        .offset(x = 6.dp, y = 6.dp)
+                                        .offset(x = logoShadowX, y = logoShadowY)
                                         .background(Color.Black, shape = RoundedCornerShape(8.dp))
                                 )
                                 Surface(
-                                    modifier = Modifier.matchParentSize(),
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .clickable(
+                                            interactionSource = logoInteractionSource,
+                                            indication = null
+                                        ) {
+                                            scope.launch {
+                                                delay(100)
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://hopsinthehangar.com"))
+                                                context.startActivity(intent)
+                                            }
+                                        },
                                     shape = RoundedCornerShape(8.dp),
                                     color = Color.White,
                                     border = BorderStroke(3.dp, Color.Black)
@@ -1246,9 +1236,12 @@ fun HomeScreen(eventData: EventData?) {
             ) {
                 Text(
                     "Middletown Aviation Foundation",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp),
                     fontWeight = FontWeight.Black,
-                    color = Color.Black
+                    color = Color.Black,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     "Your Hops in the Hangar Crew",
@@ -1323,13 +1316,87 @@ fun HomeScreen(eventData: EventData?) {
 @Composable
 fun SponsorsScreen(
     sponsors: List<SponsorItem>,
-    onSponsorClick: (String) -> Unit,
-    favoriteIds: List<String>,
-    onToggleFavorite: (String) -> Unit
+    onSponsorClick: (String) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    val allLevels = sponsors.map { it.level }.distinct()
+    var selectedLevels by remember { mutableStateOf(allLevels.toSet()) }
+
     val filteredSponsors = sponsors.filter {
-        it.name.contains(searchQuery, ignoreCase = true) || it.level.contains(searchQuery, ignoreCase = true)
+        (it.name.contains(searchQuery, ignoreCase = true) || it.level.contains(searchQuery, ignoreCase = true)) &&
+                selectedLevels.contains(it.level)
+    }
+
+    var showFilterSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+
+    if (showFilterSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showFilterSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.background,
+            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    "FILTER SPONSORS",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                allLevels.forEach { level ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                selectedLevels = if (selectedLevels.contains(level)) {
+                                    selectedLevels - level
+                                } else {
+                                    selectedLevels + level
+                                }
+                            }
+                            .padding(vertical = 12.dp)
+                    ) {
+                        NeoCheckbox(
+                            checked = selectedLevels.contains(level),
+                            onCheckedChange = { isChecked ->
+                                selectedLevels = if (isChecked) {
+                                    selectedLevels + level
+                                } else {
+                                    selectedLevels - level
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = level,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                NeoButton(
+                    onClick = { showFilterSheet = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = NeoYellow
+                ) {
+                    Text("APPLY FILTERS", fontWeight = FontWeight.Black)
+                }
+            }
+        }
     }
 
     Column(
@@ -1339,14 +1406,50 @@ fun SponsorsScreen(
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
-        NeoTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-            placeholder = { Text("SEARCH SPONSORS...", fontWeight = FontWeight.Bold, color = Color.Gray) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Black) },
-            singleLine = true
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
+            NeoTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("SEARCH SPONSORS...", fontWeight = FontWeight.Bold, color = Color.Gray) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Black) },
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            val interactionSource = remember { MutableInteractionSource() }
+            val isPressed by interactionSource.collectIsPressedAsState()
+            val shadowOffsetX = if (isPressed) 1.dp else 4.dp
+            val shadowOffsetY = if (isPressed) 1.dp else 4.dp
+            val translationX = if (isPressed) 3.dp else 0.dp
+            val translationY = if (isPressed) 3.dp else 0.dp
+
+            Box(modifier = Modifier.size(56.dp).offset(x = translationX, y = translationY)) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .offset(x = shadowOffsetX, y = shadowOffsetY)
+                        .background(Color.Black, shape = RoundedCornerShape(8.dp))
+                )
+                Surface(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = { showFilterSheet = true }
+                        ),
+                    shape = RoundedCornerShape(8.dp),
+                    color = NeoYellow,
+                    border = BorderStroke(3.dp, Color.Black)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = Color.Black)
+                    }
+                }
+            }
+        }
 
         val pinnedNames = setOf("City of Middletown", "MWO", "Start Skydiving", "Team Fastrax")
         val pinnedSponsors = filteredSponsors.filter { it.name in pinnedNames }
@@ -1368,8 +1471,6 @@ fun SponsorsScreen(
                 items(pinnedSponsors) { sponsor ->
                     SponsorCard(
                         sponsor = sponsor,
-                        isFavorite = favoriteIds.contains(sponsor.name),
-                        onToggleFavorite = onToggleFavorite,
                         isPinned = true
                     )
                 }
@@ -1383,8 +1484,6 @@ fun SponsorsScreen(
             items(otherSponsors) { sponsor ->
                 SponsorCard(
                     sponsor = sponsor,
-                    isFavorite = favoriteIds.contains(sponsor.name),
-                    onToggleFavorite = onToggleFavorite,
                     isPinned = false
                 )
             }
@@ -1397,8 +1496,6 @@ fun SponsorsScreen(
 @Composable
 fun SponsorCard(
     sponsor: SponsorItem,
-    isFavorite: Boolean,
-    onToggleFavorite: (String) -> Unit,
     isPinned: Boolean
 ) {
     val context = LocalContext.current
@@ -1549,15 +1646,6 @@ fun SponsorCard(
                                 }
                             }
                         }
-                    },
-                    trailing = {
-                        IconButton(onClick = { onToggleFavorite(sponsor.name) }) {
-                            Icon(
-                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "Favorite",
-                                tint = if (isFavorite) Color.Red else Color.Black
-                            )
-                        }
                     }
                 )
             }
@@ -1569,9 +1657,7 @@ fun SponsorCard(
 @Composable
 fun VendorsScreen(
     vendors: List<VendorItem>,
-    onVendorClick: (String) -> Unit,
-    favoriteIds: List<String>,
-    onToggleFavorite: (String) -> Unit
+    onVendorClick: (String) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategories by remember { mutableStateOf(setOf("Brewery", "Food Truck")) }
@@ -1904,7 +1990,6 @@ fun VendorsScreen(
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             items(filteredVendors) { vendor ->
-                val isFavorite = favoriteIds.contains(vendor.name)
                 NeoCard(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
@@ -1955,15 +2040,6 @@ fun VendorsScreen(
                                         )
                                     }
                                 }
-                            }
-                        },
-                        trailing = {
-                            IconButton(onClick = { onToggleFavorite(vendor.name) }) {
-                                Icon(
-                                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                    contentDescription = "Favorite",
-                                    tint = if (isFavorite) Color.Red else Color.Black
-                                )
                             }
                         }
                     )
@@ -2130,15 +2206,58 @@ fun DetailScreen(type: String, id: String, item: Any?) {
 
 @Composable
 fun DetailContactRow(icon: ImageVector, value: String, onClick: () -> Unit = {}) {
-    TextButton(
-        onClick = onClick,
-        contentPadding = PaddingValues(0.dp),
-        colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Icon(icon, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scope = rememberCoroutineScope()
+
+    val shadowOffsetX = if (isPressed) 1.dp else 3.dp
+    val shadowOffsetY = if (isPressed) 1.dp else 3.dp
+    val translationX = if (isPressed) 2.dp else 0.dp
+    val translationY = if (isPressed) 2.dp else 0.dp
+
+    Box(modifier = Modifier.fillMaxWidth().offset(x = translationX, y = translationY)) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .offset(x = shadowOffsetX, y = shadowOffsetY)
+                .background(Color.Black, shape = RoundedCornerShape(6.dp))
+        )
+        Surface(
+            shape = RoundedCornerShape(6.dp),
+            color = NeoWhite,
+            border = BorderStroke(2.dp, Color.Black),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) {
+                    scope.launch {
+                        delay(100)
+                        onClick()
+                    }
+                }
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)
+            ) {
+                Icon(icon, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    value,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Black
+                    ),
+                    color = Color.Black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    softWrap = false,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
@@ -2204,10 +2323,13 @@ fun EntertainmentScreen(schedule: List<ScheduleItem>) {
 
         Text(
             text = "AIRSHOW PILOTS / PERFORMERS",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleLarge.copy(fontSize = 17.sp),
             color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Black,
-            letterSpacing = 1.sp
+            letterSpacing = 1.sp,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis
         )
 
         NeoCard(
