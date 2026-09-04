@@ -396,7 +396,7 @@ fun MainScreen(analytics: FirebaseAnalytics? = Firebase.analytics) {
                 it.route == currentRoute || 
                 (it.route == Screen.Sponsors.route && currentRoute?.contains("sponsor") == true) ||
                 (it.route == Screen.Vendors.route && currentRoute?.contains("vendor") == true)
-            }?.label?.uppercase() ?: "HOPS IN THE HANGAR"
+            }?.label?.uppercase() ?: Screen.Home.label.uppercase()
 
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant,

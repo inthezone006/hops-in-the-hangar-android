@@ -1,6 +1,6 @@
-# Hops in the Hangar ✈️🍻
+# HITH (Hops in the Hangar) ✈️🍻
 
-Hops in the Hangar is the official companion app for the premier Craft Beer & Airshow event at the Middletown Regional Airport (MWO). Designed to enhance the attendee experience, the app provides interactive navigation, real-time schedules, and detailed information about participating breweries, food vendors, and sponsors.
+**HITH** (Hops in the Hangar) is the official companion app for the premier Craft Beer & Airshow event at the Middletown Regional Airport (MWO). Designed to enhance the attendee experience, the app provides interactive navigation, real-time schedules, and detailed information about participating breweries, food vendors, and sponsors in a vibrant **Neo-Brutalist** aesthetic.
 
 ## 🌟 Features
 
@@ -21,16 +21,16 @@ Hops in the Hangar is the official companion app for the premier Craft Beer & Ai
 *   **Venue Info**: Quick access to parking directions, event rules, and nearby hotels.
 *   **FAQ**: Answers to common questions regarding ticket types, ID requirements, and prohibited items.
 
-### 🎨 Modern UI/UX
-*   **Material 3**: Clean, modern interface following the latest Android design guidelines.
-*   **Dynamic Home Screen**: Features an immersive video background showcasing past event highlights.
+### 🎨 Neo-Brutalist UI/UX
+*   **Design System**: High-contrast, bold **Neo-Brutalism** styling featuring stark black borders, vibrant accent colors (Neo Yellow, Hot Pink, Mint Green, Electric Blue), and tactile press effects.
+*   **Modern Material 3 Integration**: Clean, custom components combining Material 3 foundations with brutalist visual flair.
 *   **Edge-to-Edge**: Fully immersive experience with transparent system bars.
 
 ## 🛠️ Technologies Used
 
 *   **Language**: [Kotlin](https://kotlinlang.org/)
 *   **UI Framework**: [Jetpack Compose](https://developer.android.com/jetpack/compose)
-*   **Theming**: [Material 3](https://developer.android.com/jetpack/compose/designsystems/material3)
+*   **Theming**: Custom Material 3 [Neo-Brutalist Theme](app/src/main/java/com/rahul/hopsinthehangar/ui/theme/)
 *   **Architecture**: MVVM with Repository pattern
 *   **Navigation**: [Jetpack Navigation Compose](https://developer.android.com/jetpack/compose/navigation)
 *   **Image Loading**: [Coil](https://coil-kt.github.io/coil/)
@@ -50,7 +50,7 @@ app/
 │   ├── assets/             # SVG Maps & Event JSON data
 │   ├── java/.../
 │   │   ├── MainActivity.kt # Main entry point and Navigation
-│   │   └── ui/theme/       # Material 3 Theme definitions
+│   │   └── ui/theme/       # Neo-Brutalist Material 3 Theme definitions
 │   └── res/                # Drawables (Sponsor/Vendor Logos)
 └── build.gradle.kts        # Dependency management
 ```
