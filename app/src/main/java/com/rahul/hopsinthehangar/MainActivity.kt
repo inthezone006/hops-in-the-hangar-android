@@ -1380,7 +1380,7 @@ fun SponsorsScreen(
                                             model = resourceId,
                                             contentDescription = name,
                                             modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)),
-                                            contentScale = ContentScale.Crop
+                                            contentScale = ContentScale.Fit
                                         )
                                     } else {
                                         Icon(
@@ -1717,7 +1717,7 @@ fun SponsorCard(
                                                 model = resourceId,
                                                 contentDescription = name,
                                                 modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)),
-                                                contentScale = ContentScale.Crop
+                                                contentScale = ContentScale.Fit
                                             )
                                         } else {
                                             Icon(
@@ -1869,7 +1869,7 @@ fun VendorsScreen(
                                         model = resourceId,
                                         contentDescription = vendor.name,
                                         modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)),
-                                        contentScale = ContentScale.Crop
+                                        contentScale = ContentScale.Fit
                                     )
                                 } else {
                                     Icon(
@@ -2109,7 +2109,7 @@ fun VendorsScreen(
                                             model = resourceId,
                                             contentDescription = vendor.name,
                                             modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)),
-                                            contentScale = ContentScale.Crop
+                                            contentScale = ContentScale.Fit
                                         )
                                     } else {
                                         Icon(
