@@ -349,17 +349,21 @@ fun NeoListItem(
 @Composable
 fun NeoCheckbox(
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: ((Boolean) -> Unit)? = null
 ) {
     Box(
         modifier = Modifier
             .size(28.dp)
             .background(if (checked) NeoYellow else Color.White, shape = RoundedCornerShape(4.dp))
             .border(BorderStroke(2.dp, Color.Black), shape = RoundedCornerShape(4.dp))
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ) { onCheckedChange(!checked) },
+            .then(
+                if (onCheckedChange != null) {
+                    Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { onCheckedChange(!checked) }
+                } else Modifier
+            ),
         contentAlignment = Alignment.Center
     ) {
         if (checked) {
@@ -369,6 +373,66 @@ fun NeoCheckbox(
                 tint = Color.Black,
                 modifier = Modifier.size(20.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun NeoFilterButton(
+    text: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = if (checked) NeoCream else Color.White
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val shadowOffsetX = if (isPressed) 1.dp else 4.dp
+    val shadowOffsetY = if (isPressed) 1.dp else 4.dp
+    val translationX = if (isPressed) 3.dp else 0.dp
+    val translationY = if (isPressed) 3.dp else 0.dp
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .offset(x = translationX, y = translationY)
+    ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .offset(x = shadowOffsetX, y = shadowOffsetY)
+                .background(Color.Black, shape = RoundedCornerShape(8.dp))
+        )
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = { onCheckedChange(!checked) }
+                ),
+            shape = RoundedCornerShape(8.dp),
+            color = containerColor,
+            contentColor = Color.Black,
+            border = BorderStroke(3.dp, Color.Black)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                NeoCheckbox(
+                    checked = checked
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Black
+                )
+            }
         }
     }
 }
@@ -1448,24 +1512,12 @@ fun SponsorsScreen(
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                allLevels.forEach { level ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                selectedLevels = if (selectedLevels.contains(level)) {
-                                    selectedLevels - level
-                                } else {
-                                    selectedLevels + level
-                                }
-                            }
-                            .padding(vertical = 12.dp)
-                    ) {
-                        NeoCheckbox(
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    allLevels.forEach { level ->
+                        NeoFilterButton(
+                            text = level,
                             checked = selectedLevels.contains(level),
                             onCheckedChange = { isChecked ->
                                 selectedLevels = if (isChecked) {
@@ -1474,12 +1526,6 @@ fun SponsorsScreen(
                                     selectedLevels - level
                                 }
                             }
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = level,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Black
                         )
                     }
                 }
@@ -1948,24 +1994,12 @@ fun VendorsScreen(
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                listOf("Brewery", "Food Truck").forEach { category ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                selectedCategories = if (selectedCategories.contains(category)) {
-                                    selectedCategories - category
-                                } else {
-                                    selectedCategories + category
-                                }
-                            }
-                            .padding(vertical = 12.dp)
-                    ) {
-                        NeoCheckbox(
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    listOf("Brewery", "Food Truck").forEach { category ->
+                        NeoFilterButton(
+                            text = category,
                             checked = selectedCategories.contains(category),
                             onCheckedChange = { isChecked ->
                                 selectedCategories = if (isChecked) {
@@ -1974,12 +2008,6 @@ fun VendorsScreen(
                                     selectedCategories - category
                                 }
                             }
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = category,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Black
                         )
                     }
                 }
