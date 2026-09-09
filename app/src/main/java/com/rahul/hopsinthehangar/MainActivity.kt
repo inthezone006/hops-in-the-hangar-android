@@ -11,6 +11,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -158,19 +162,48 @@ fun NeoCard(
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val shadowOffsetX = if (isPressed && onClick != null) 2.dp else 6.dp
-    val shadowOffsetY = if (isPressed && onClick != null) 2.dp else 6.dp
-    val translationX = if (isPressed && onClick != null) 4.dp else 0.dp
-    val translationY = if (isPressed && onClick != null) 4.dp else 0.dp
+    val animatedTranslationX by animateDpAsState(
+        targetValue = if (isPressed && onClick != null) 4.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "NeoCardTransX"
+    )
+    val animatedTranslationY by animateDpAsState(
+        targetValue = if (isPressed && onClick != null) 4.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "NeoCardTransY"
+    )
+    val animatedShadowX by animateDpAsState(
+        targetValue = if (isPressed && onClick != null) 2.dp else 6.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "NeoCardShadowX"
+    )
+    val animatedShadowY by animateDpAsState(
+        targetValue = if (isPressed && onClick != null) 2.dp else 6.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "NeoCardShadowY"
+    )
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isPressed && onClick != null) 0.98f else 1f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "NeoCardScale"
+    )
 
-    Box(modifier = modifier.offset(x = translationX, y = translationY)) {
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = animatedScale
+                scaleY = animatedScale
+            }
+            .offset(x = animatedTranslationX, y = animatedTranslationY)
+    ) {
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .offset(x = shadowOffsetX, y = shadowOffsetY)
+                .offset(x = animatedShadowX, y = animatedShadowY)
                 .background(Color.Black, shape = RoundedCornerShape(8.dp))
         )
 
@@ -179,7 +212,12 @@ fun NeoCard(
                 Modifier.fillMaxWidth().clickable(
                     interactionSource = interactionSource,
                     indication = null,
-                    onClick = onClick
+                    onClick = {
+                        scope.launch {
+                            delay(100)
+                            onClick()
+                        }
+                    }
                 )
             } else {
                 Modifier.fillMaxWidth()
@@ -202,26 +240,60 @@ fun NeoButton(
     contentColor: Color = Color.Black,
     content: @Composable RowScope.() -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val shadowOffsetX = if (isPressed) 1.dp else 4.dp
-    val shadowOffsetY = if (isPressed) 1.dp else 4.dp
-    val translationX = if (isPressed) 3.dp else 0.dp
-    val translationY = if (isPressed) 3.dp else 0.dp
+    val animatedTranslationX by animateDpAsState(
+        targetValue = if (isPressed) 3.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "NeoButtonTransX"
+    )
+    val animatedTranslationY by animateDpAsState(
+        targetValue = if (isPressed) 3.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "NeoButtonTransY"
+    )
+    val animatedShadowX by animateDpAsState(
+        targetValue = if (isPressed) 1.dp else 4.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "NeoButtonShadowX"
+    )
+    val animatedShadowY by animateDpAsState(
+        targetValue = if (isPressed) 1.dp else 4.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "NeoButtonShadowY"
+    )
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "NeoButtonScale"
+    )
 
-    Box(modifier = modifier.offset(x = translationX, y = translationY)) {
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = animatedScale
+                scaleY = animatedScale
+            }
+            .offset(x = animatedTranslationX, y = animatedTranslationY)
+    ) {
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .offset(x = shadowOffsetX, y = shadowOffsetY)
+                .offset(x = animatedShadowX, y = animatedShadowY)
                 .background(Color.Black, shape = RoundedCornerShape(8.dp))
         )
         Surface(
             modifier = Modifier.fillMaxWidth().clickable(
                 interactionSource = interactionSource,
                 indication = null,
-                onClick = onClick
+                onClick = {
+                    scope.launch {
+                        delay(100)
+                        onClick()
+                    }
+                }
             ),
             shape = RoundedCornerShape(8.dp),
             color = containerColor,
@@ -385,23 +457,49 @@ fun NeoFilterButton(
     modifier: Modifier = Modifier,
     containerColor: Color = if (checked) NeoCream else Color.White
 ) {
+    val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val shadowOffsetX = if (isPressed) 1.dp else 4.dp
-    val shadowOffsetY = if (isPressed) 1.dp else 4.dp
-    val translationX = if (isPressed) 3.dp else 0.dp
-    val translationY = if (isPressed) 3.dp else 0.dp
+    val animatedTranslationX by animateDpAsState(
+        targetValue = if (isPressed) 3.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "FilterBtnTransX"
+    )
+    val animatedTranslationY by animateDpAsState(
+        targetValue = if (isPressed) 3.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "FilterBtnTransY"
+    )
+    val animatedShadowX by animateDpAsState(
+        targetValue = if (isPressed) 1.dp else 4.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "FilterBtnShadowX"
+    )
+    val animatedShadowY by animateDpAsState(
+        targetValue = if (isPressed) 1.dp else 4.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "FilterBtnShadowY"
+    )
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "FilterBtnScale"
+    )
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .offset(x = translationX, y = translationY)
+            .graphicsLayer {
+                scaleX = animatedScale
+                scaleY = animatedScale
+            }
+            .offset(x = animatedTranslationX, y = animatedTranslationY)
     ) {
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .offset(x = shadowOffsetX, y = shadowOffsetY)
+                .offset(x = animatedShadowX, y = animatedShadowY)
                 .background(Color.Black, shape = RoundedCornerShape(8.dp))
         )
         Surface(
@@ -410,7 +508,12 @@ fun NeoFilterButton(
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
-                    onClick = { onCheckedChange(!checked) }
+                    onClick = {
+                        scope.launch {
+                            delay(80)
+                            onCheckedChange(!checked)
+                        }
+                    }
                 ),
             shape = RoundedCornerShape(8.dp),
             color = containerColor,
@@ -1412,37 +1515,68 @@ fun HomeScreen(eventData: EventData?) {
                 Spacer(modifier = Modifier.height(24.dp))
 
                 val crew = listOf(
-                    "Rich Bevis", "Kurt Yearout", "Sara Yearout", "Tom Spielmann",
-                    "Sean Askren", "Mica Jones", "Missy Lawwill", "Jamie Murphy",
-                    "Rahul Menon"
+                    "Rich Bevis", "Kurt Yearout", "Sara Yearout",
+                    "Tom Spielmann", "Sean Askren", "Mica Jones",
+                    "Missy Lawwill", "Jamie Murphy", "Rahul Menon"
                 )
 
-                @OptIn(ExperimentalLayoutApi::class)
-                FlowRow(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    maxItemsInEachRow = 3
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    crew.forEach { name ->
-                        Box(modifier = Modifier.padding(4.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .offset(x = 3.dp, y = 3.dp)
-                                    .background(Color.Black, shape = RoundedCornerShape(8.dp))
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = Color.White,
-                                border = BorderStroke(2.dp, Color.Black)
-                            ) {
-                                Text(
-                                    name,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Black
-                                )
+                    crew.chunked(3).forEach { rowItems ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            rowItems.forEach { name ->
+                                val parts = name.split(" ", limit = 2)
+                                val firstName = parts.getOrNull(0).orEmpty()
+                                val lastName = parts.getOrNull(1).orEmpty()
+
+                                Box(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .matchParentSize()
+                                            .offset(x = 3.dp, y = 3.dp)
+                                            .background(Color.Black, shape = RoundedCornerShape(8.dp))
+                                    )
+                                    Surface(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = Color.White,
+                                        border = BorderStroke(2.dp, Color.Black)
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 4.dp, vertical = 8.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            Text(
+                                                text = firstName,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.Black,
+                                                textAlign = TextAlign.Center,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                            Text(
+                                                text = lastName,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.Black,
+                                                textAlign = TextAlign.Center,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -1782,18 +1916,39 @@ fun SponsorsScreen(
 
             Spacer(modifier = Modifier.width(12.dp))
 
+            val scope = rememberCoroutineScope()
             val interactionSource = remember { MutableInteractionSource() }
             val isPressed by interactionSource.collectIsPressedAsState()
-            val shadowOffsetX = if (isPressed) 1.dp else 4.dp
-            val shadowOffsetY = if (isPressed) 1.dp else 4.dp
-            val translationX = if (isPressed) 3.dp else 0.dp
-            val translationY = if (isPressed) 3.dp else 0.dp
+            val animatedTranslationX by animateDpAsState(
+                targetValue = if (isPressed) 3.dp else 0.dp,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+                label = "SponsorFilterTransX"
+            )
+            val animatedTranslationY by animateDpAsState(
+                targetValue = if (isPressed) 3.dp else 0.dp,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+                label = "SponsorFilterTransY"
+            )
+            val animatedShadowX by animateDpAsState(
+                targetValue = if (isPressed) 1.dp else 4.dp,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+                label = "SponsorFilterShadowX"
+            )
+            val animatedShadowY by animateDpAsState(
+                targetValue = if (isPressed) 1.dp else 4.dp,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+                label = "SponsorFilterShadowY"
+            )
 
-            Box(modifier = Modifier.size(56.dp).offset(x = translationX, y = translationY)) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .offset(x = animatedTranslationX, y = animatedTranslationY)
+            ) {
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .offset(x = shadowOffsetX, y = shadowOffsetY)
+                        .offset(x = animatedShadowX, y = animatedShadowY)
                         .background(Color.Black, shape = RoundedCornerShape(8.dp))
                 )
                 Surface(
@@ -1802,7 +1957,12 @@ fun SponsorsScreen(
                         .clickable(
                             interactionSource = interactionSource,
                             indication = null,
-                            onClick = { showFilterSheet = true }
+                            onClick = {
+                                scope.launch {
+                                    delay(80)
+                                    showFilterSheet = true
+                                }
+                            }
                         ),
                     shape = RoundedCornerShape(8.dp),
                     color = NeoYellow,
@@ -1870,20 +2030,63 @@ fun SponsorCard(
     isPinned: Boolean,
     onClick: () -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxWidth()) {
+    val scope = rememberCoroutineScope()
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val animatedTranslationX by animateDpAsState(
+        targetValue = if (isPressed) 4.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "SponsorCardTransX"
+    )
+    val animatedTranslationY by animateDpAsState(
+        targetValue = if (isPressed) 4.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "SponsorCardTransY"
+    )
+    val animatedShadowX by animateDpAsState(
+        targetValue = if (isPressed) 2.dp else 6.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "SponsorCardShadowX"
+    )
+    val animatedShadowY by animateDpAsState(
+        targetValue = if (isPressed) 2.dp else 6.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "SponsorCardShadowY"
+    )
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "SponsorCardScale"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = animatedScale
+                scaleY = animatedScale
+            }
+            .offset(x = animatedTranslationX, y = animatedTranslationY)
+    ) {
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .offset(x = 6.dp, y = 6.dp)
+                .offset(x = animatedShadowX, y = animatedShadowY)
                 .background(Color.Black, shape = RoundedCornerShape(8.dp))
         )
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
+                    interactionSource = interactionSource,
                     indication = null,
-                    onClick = onClick
+                    onClick = {
+                        scope.launch {
+                            delay(100)
+                            onClick()
+                        }
+                    }
                 ),
             shape = RoundedCornerShape(8.dp),
             color = if (isPinned) NeoYellow else NeoWhite,
@@ -2239,18 +2442,39 @@ fun VendorsScreen(
 
             Spacer(modifier = Modifier.width(12.dp))
 
+            val scope = rememberCoroutineScope()
             val interactionSource = remember { MutableInteractionSource() }
             val isPressed by interactionSource.collectIsPressedAsState()
-            val shadowOffsetX = if (isPressed) 1.dp else 4.dp
-            val shadowOffsetY = if (isPressed) 1.dp else 4.dp
-            val translationX = if (isPressed) 3.dp else 0.dp
-            val translationY = if (isPressed) 3.dp else 0.dp
+            val animatedTranslationX by animateDpAsState(
+                targetValue = if (isPressed) 3.dp else 0.dp,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+                label = "VendorFilterTransX"
+            )
+            val animatedTranslationY by animateDpAsState(
+                targetValue = if (isPressed) 3.dp else 0.dp,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+                label = "VendorFilterTransY"
+            )
+            val animatedShadowX by animateDpAsState(
+                targetValue = if (isPressed) 1.dp else 4.dp,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+                label = "VendorFilterShadowX"
+            )
+            val animatedShadowY by animateDpAsState(
+                targetValue = if (isPressed) 1.dp else 4.dp,
+                animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+                label = "VendorFilterShadowY"
+            )
 
-            Box(modifier = Modifier.size(56.dp).offset(x = translationX, y = translationY)) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .offset(x = animatedTranslationX, y = animatedTranslationY)
+            ) {
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .offset(x = shadowOffsetX, y = shadowOffsetY)
+                        .offset(x = animatedShadowX, y = animatedShadowY)
                         .background(Color.Black, shape = RoundedCornerShape(8.dp))
                 )
                 Surface(
@@ -2259,7 +2483,12 @@ fun VendorsScreen(
                         .clickable(
                             interactionSource = interactionSource,
                             indication = null,
-                            onClick = { showFilterSheet = true }
+                            onClick = {
+                                scope.launch {
+                                    delay(80)
+                                    showFilterSheet = true
+                                }
+                            }
                         ),
                     shape = RoundedCornerShape(8.dp),
                     color = NeoYellow,
@@ -2415,23 +2644,49 @@ fun EntertainmentButton(
         else -> Icons.Default.AirplanemodeActive
     }
 
+    val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val shadowOffsetX = if (isPressed) 2.dp else 5.dp
-    val shadowOffsetY = if (isPressed) 2.dp else 5.dp
-    val translationX = if (isPressed) 3.dp else 0.dp
-    val translationY = if (isPressed) 3.dp else 0.dp
+    val animatedTranslationX by animateDpAsState(
+        targetValue = if (isPressed) 4.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "EntertainmentButtonTransX"
+    )
+    val animatedTranslationY by animateDpAsState(
+        targetValue = if (isPressed) 4.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "EntertainmentButtonTransY"
+    )
+    val animatedShadowX by animateDpAsState(
+        targetValue = if (isPressed) 1.dp else 5.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "EntertainmentButtonShadowX"
+    )
+    val animatedShadowY by animateDpAsState(
+        targetValue = if (isPressed) 1.dp else 5.dp,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "EntertainmentButtonShadowY"
+    )
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
+        label = "EntertainmentButtonScale"
+    )
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .offset(x = translationX, y = translationY)
+            .graphicsLayer {
+                scaleX = animatedScale
+                scaleY = animatedScale
+            }
+            .offset(x = animatedTranslationX, y = animatedTranslationY)
     ) {
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .offset(x = shadowOffsetX, y = shadowOffsetY)
+                .offset(x = animatedShadowX, y = animatedShadowY)
                 .background(Color.Black, shape = RoundedCornerShape(8.dp))
         )
         Surface(
@@ -2440,7 +2695,12 @@ fun EntertainmentButton(
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
-                    onClick = onClick
+                    onClick = {
+                        scope.launch {
+                            delay(100)
+                            onClick()
+                        }
+                    }
                 ),
             shape = RoundedCornerShape(8.dp),
             color = containerColor,

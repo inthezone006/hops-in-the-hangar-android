@@ -14,8 +14,8 @@ android {
         applicationId = "com.rahul.hopsinthehangar"
         minSdk = 24
         targetSdk = 37
-        versionCode = 11
-        versionName = "2.0.2"
+        versionCode = 13
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
